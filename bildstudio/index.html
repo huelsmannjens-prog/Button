@@ -225,7 +225,7 @@ details.sub-box>div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
       <h2 class="ph">Ausgabe</h2>
       <div class="out-row"><button class="btn" id="pdfSheet">🖨 PDF: ganze Seite Buttons</button>
         <label class="check"><input type="checkbox" id="pdfCutLine" checked> Schnittlinie</label></div>
-      <div class="out-row"><button class="btn" id="toPro">➡ In StudioPro öffnen (5×)</button><button class="btn" id="proJson" style="flex:0 1 auto;min-width:0">💾 JSON speichern</button></div>
+      <div class="out-row"><a class="btn" id="toPro" href="../studiopro/" target="_blank" rel="noopener" style="text-decoration:none">➡ Entwurf in StudioPro öffnen (5×)</a><button class="btn" id="proJson" style="flex:0 1 auto;min-width:0">💾 JSON speichern</button></div>
       <label class="check"><input type="checkbox" id="proWithText" checked> Texte im StudioPro bearbeitbar übernehmen (sonst als Teil des Bildes)</label>
       <div class="out-row"><button class="btn" id="pdfSticker">🏷 Aufkleber-PDF (4 × 5 auf A4)</button>
         <label class="check" style="gap:6px">Form <select id="stickerShape" style="width:auto"><option value="round">Rund</option><option value="square">Eckig</option></select></label></div>
@@ -738,14 +738,13 @@ $("proJson").onclick = ()=>{
   const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([json],{type:"application/json"})); a.download=name; document.body.append(a); a.click(); a.remove();
   $("outStatus").textContent = name + " gespeichert. Im StudioPro über 📂 Laden öffnen.";
 };
-$("toPro").onclick = ()=>{
+// Link "Entwurf in StudioPro öffnen": Entwurf erst beim Klick übergeben, dann öffnet der Link StudioPro
+$("toPro").addEventListener("click", e=>{
   const st=$("outStatus");
   // Übergabe nur im eigenen Browser; StudioPro löscht sie sofort nach dem Öffnen. Nichts wird hochgeladen.
-  try{ localStorage.setItem("bildstudioHandoff", JSON.stringify({v:2, project: proProject()})); }
-  catch(e){ st.textContent="Übergabe ging nicht: Der Browser-Speicher ist voll oder gesperrt. Nimm stattdessen „JSON speichern“."; return; }
-  st.textContent="StudioPro wird in einem neuen Tab geöffnet.";
-  const w = window.open("../studiopro/", "_blank"); if (!w) location.href="../studiopro/";
-};
+  try{ localStorage.setItem("bildstudioHandoff", JSON.stringify({v:2, project: proProject()})); st.textContent="Entwurf übergeben – StudioPro öffnet sich in einem neuen Tab."; }
+  catch(err){ e.preventDefault(); st.textContent="Übergabe ging nicht: Der Browser-Speicher ist voll oder gesperrt. Nimm stattdessen „JSON speichern“."; }
+});
 
 syncUi(); draw();
 })();
