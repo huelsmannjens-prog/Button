@@ -29,8 +29,22 @@ body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-
 h1{font-family:var(--display);font-size:26px;margin:0;text-wrap:balance}
 .sub{color:var(--muted);margin:4px 0 0}
 header{max-width:1400px;margin:0 auto 16px}
-.grid{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
-@media (max-width:1050px){.grid{grid-template-columns:minmax(0,1fr)}.stage{order:-1}}
+.grid{max-width:1500px;margin:0 auto;display:grid;gap:16px;align-items:start;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.05fr) minmax(0,.85fr);grid-template-areas:"left stage right"}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.col-left{grid-area:left}.col-right{grid-area:right}
+.stage{grid-area:stage;position:sticky;top:12px}
+.ph{font-family:var(--display);font-size:15px;margin:0}
+@media (max-width:1099px){
+  .grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"stage left" "stage right"}
+}
+@media (max-width:699px){
+  .grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"stage" "left" "right"}
+  .stage{top:0;z-index:5;padding:8px;gap:6px;box-shadow:0 6px 14px rgba(0,0,0,.18)}
+  .stage .legend,.stage .credit,.stage .status:empty{display:none}
+  #preview{max-width:min(100%,38vh)}
+  .stage .btn{padding:7px 8px;font-size:12px}
+}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .tabs{display:flex;gap:4px;background:var(--soft);padding:4px;border-radius:8px}
 .tabs button{flex:1;border:0;background:transparent;color:var(--fg);padding:8px 4px;border-radius:6px;font:500 13px var(--body);cursor:pointer}
@@ -77,68 +91,8 @@ details.sub-box>div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
 </header>
 
 <div class="grid">
-  <!-- Bildquelle -->
-  <section class="panel" aria-label="Bildquelle">
-    <p class="target" id="targetInfo"></p>
-    <div class="tabs" role="tablist">
-      <button role="tab" id="tab-search" aria-selected="true">Suchen</button>
-      <button role="tab" id="tab-gen" aria-selected="false">KI erzeugen</button>
-      <button role="tab" id="tab-up" aria-selected="false">Hochladen</button>
-    </div>
-
-    <div id="pane-search" class="pane" style="display:flex;flex-direction:column;gap:10px">
-      <label>Suchbegriff (Englisch liefert meist mehr Treffer)<input type="text" id="q" value="sunflower"></label>
-      <div class="row">
-        <label class="check"><input type="checkbox" id="commercial" checked> Kommerziell nutzbar</label>
-        <label class="check"><input type="checkbox" id="square"> Nur quadratisch</label>
-      </div>
-      <button class="btn primary" id="doSearch">Suchen</button>
-      <p class="status" id="searchStatus"></p>
-      <div class="results" id="results"></div>
-      <p class="note">Quelle: Openverse (Creative-Commons- und gemeinfreie Bilder aus Wikimedia, Flickr und mehr). Lizenz und Urheber stehen unter der Vorschau; bei CC BY bitte nennen.</p>
-    </div>
-
-    <div id="pane-gen" class="pane" hidden style="display:flex;flex-direction:column;gap:10px">
-      <label>Thema<input type="text" id="gTheme" value="Sonnenblume mit fröhlichem Gesicht"></label>
-      <label>Stil<select id="gStyle">
-        <option value="flat vector illustration, bold outlines, limited color palette">Flache Vektorgrafik</option>
-        <option value="retro 70s poster style, warm colors, halftone texture">Retro 70er</option>
-        <option value="cute kawaii sticker style, thick white outline">Kawaii-Sticker</option>
-        <option value="watercolor painting, soft edges">Aquarell</option>
-        <option value="photorealistic, studio lighting">Fotorealistisch</option>
-        <option value="black and white line art, high contrast">Strichzeichnung s/w</option>
-      </select></label>
-      <label>Zusatz (optional)<textarea id="gExtra" placeholder="z. B. Hintergrund hellblau, keine Schrift im Bild"></textarea></label>
-      <label>OpenAI-API-Schlüssel<input type="password" id="apiKey" placeholder="sk-…" autocomplete="off"></label>
-      <label class="check"><input type="checkbox" id="rememberKey"> Schlüssel in diesem Browser merken</label>
-      <button class="btn primary" id="doGen">Bild erzeugen</button>
-      <p class="status" id="genStatus"></p>
-      <p class="note">Das Motiv wird mittig und rund-tauglich angefragt, ohne Text im Bild. Kosten laut OpenAI-Preisliste, grob einige Cent pro Bild. Der Schlüssel geht nur an api.openai.com.</p>
-    </div>
-
-    <div id="pane-up" class="pane" hidden>
-      <div class="drop" id="drop">Bild hierher ziehen, einfügen (Strg+V) oder<br><br><input type="file" id="file" accept="image/*"></div>
-    </div>
-  </section>
-
-  <!-- Vorschau -->
-  <section class="panel stage" aria-label="Vorschau">
-    <canvas id="preview" width="880" height="880" aria-label="Runde Button-Vorschau, mit Finger oder Maus verschiebbar"></canvas>
-    <div class="legend">
-      <span><i style="color:#e0413a"></i>Schnittkante</span>
-      <span><i style="color:#2f5bd3"></i>Sichtbare Vorderseite</span>
-      <span><i style="color:#1f9d55"></i>Sicherer Bereich für Text</span>
-    </div>
-    <p class="credit" id="credit"></p>
-    <div class="row" style="width:100%">
-      <button class="btn primary" id="exportPng">PNG speichern (300 dpi)</button>
-      <button class="btn" id="exportGuides">PNG mit Hilfslinien</button>
-    </div>
-    <p class="status" id="exportStatus"></p>
-  </section>
-
-  <!-- Bearbeiten -->
-  <section class="panel" aria-label="Bearbeiten" id="editPanel">
+  <div class="col col-left">
+    <section class="panel edit" aria-label="Button und Motiv">
     <fieldset><legend>Button</legend>
       <label>Größe<select id="preset">
         <option value="25,37" selected>25 mm (Zuschnitt 37 mm)</option>
@@ -206,7 +160,66 @@ details.sub-box>div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
       <button class="btn" id="resetImg">Position zurücksetzen</button>
     </fieldset>
 
-    <fieldset><legend>Texte</legend>
+    </section>
+    <section class="panel" aria-label="Bildquelle"><h2 class="ph">Bild suchen, erzeugen oder hochladen</h2>
+    <p class="target" id="targetInfo"></p>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-search" aria-selected="true">Suchen</button>
+      <button role="tab" id="tab-gen" aria-selected="false">KI erzeugen</button>
+      <button role="tab" id="tab-up" aria-selected="false">Hochladen</button>
+    </div>
+
+    <div id="pane-search" class="pane" style="display:flex;flex-direction:column;gap:10px">
+      <label>Suchbegriff (Englisch liefert meist mehr Treffer)<input type="text" id="q" value="sunflower"></label>
+      <div class="row">
+        <label class="check"><input type="checkbox" id="commercial" checked> Kommerziell nutzbar</label>
+        <label class="check"><input type="checkbox" id="square"> Nur quadratisch</label>
+      </div>
+      <button class="btn primary" id="doSearch">Suchen</button>
+      <p class="status" id="searchStatus"></p>
+      <div class="results" id="results"></div>
+      <p class="note">Quelle: Openverse (Creative-Commons- und gemeinfreie Bilder aus Wikimedia, Flickr und mehr). Lizenz und Urheber stehen unter der Vorschau; bei CC BY bitte nennen.</p>
+    </div>
+
+    <div id="pane-gen" class="pane" hidden style="display:flex;flex-direction:column;gap:10px">
+      <label>Thema<input type="text" id="gTheme" value="Sonnenblume mit fröhlichem Gesicht"></label>
+      <label>Stil<select id="gStyle">
+        <option value="flat vector illustration, bold outlines, limited color palette">Flache Vektorgrafik</option>
+        <option value="retro 70s poster style, warm colors, halftone texture">Retro 70er</option>
+        <option value="cute kawaii sticker style, thick white outline">Kawaii-Sticker</option>
+        <option value="watercolor painting, soft edges">Aquarell</option>
+        <option value="photorealistic, studio lighting">Fotorealistisch</option>
+        <option value="black and white line art, high contrast">Strichzeichnung s/w</option>
+      </select></label>
+      <label>Zusatz (optional)<textarea id="gExtra" placeholder="z. B. Hintergrund hellblau, keine Schrift im Bild"></textarea></label>
+      <label>OpenAI-API-Schlüssel<input type="password" id="apiKey" placeholder="sk-…" autocomplete="off"></label>
+      <label class="check"><input type="checkbox" id="rememberKey"> Schlüssel in diesem Browser merken</label>
+      <button class="btn primary" id="doGen">Bild erzeugen</button>
+      <p class="status" id="genStatus"></p>
+      <p class="note">Das Motiv wird mittig und rund-tauglich angefragt, ohne Text im Bild. Kosten laut OpenAI-Preisliste, grob einige Cent pro Bild. Der Schlüssel geht nur an api.openai.com.</p>
+    </div>
+
+    <div id="pane-up" class="pane" hidden>
+      <div class="drop" id="drop">Bild hierher ziehen, einfügen (Strg+V) oder<br><br><input type="file" id="file" accept="image/*"></div>
+    </div>
+  </section>
+  </div>
+  <section class="panel stage" aria-label="Vorschau">
+    <canvas id="preview" width="880" height="880" aria-label="Runde Button-Vorschau, mit Finger oder Maus verschiebbar"></canvas>
+    <div class="legend">
+      <span><i style="color:#e0413a"></i>Schnittkante</span>
+      <span><i style="color:#2f5bd3"></i>Sichtbare Vorderseite</span>
+      <span><i style="color:#1f9d55"></i>Sicherer Bereich für Text</span>
+    </div>
+    <p class="credit" id="credit"></p>
+    <div class="row" style="width:100%">
+      <button class="btn primary" id="exportPng">PNG speichern (300 dpi)</button>
+      <button class="btn" id="exportGuides">PNG mit Hilfslinien</button>
+    </div>
+    <p class="status" id="exportStatus"></p>
+  </section>
+  <div class="col col-right">
+    <section class="panel edit" aria-label="Texte"><fieldset><legend>Texte</legend>
       <div class="row">
         <label>Textfarbe<input type="color" id="tColor" value="#ffffff"></label>
         <label>Kontur<input type="color" id="tStroke" value="#000000"></label>
@@ -215,8 +228,8 @@ details.sub-box>div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
       <details class="sub-box" open><summary>Oben (im Bogen)</summary><div data-text="top"></div></details>
       <details class="sub-box"><summary>Mitte</summary><div data-text="mid"></div></details>
       <details class="sub-box" open><summary>Unten (im Bogen)</summary><div data-text="bottom"></div></details>
-    </fieldset>
-  </section>
+    </fieldset></section>
+  </div>
 </div>
 
 <script>
@@ -432,7 +445,7 @@ let raf=0;
 function draw(){ cancelAnimationFrame(raf); raf = requestAnimationFrame(()=>{ syncUi(); render(ctx, cv.width, true); }); }
 
 /* ---------- Steuerung ---------- */
-$("editPanel").addEventListener("input", draw);
+document.addEventListener("input", e=>{ if(e.target.closest(".edit")) draw(); });
 $("preset").addEventListener("input", ()=>{ const [f,c]=v("preset").split(","); $("faceMm").value=f; $("cutMm").value=c; draw(); });
 $("resetImg").onclick = ()=>{ state.ox=state.oy=0; $("zoom").value=1; $("rot").value=0; draw(); };
 if (document.fonts){ document.fonts.ready.then(draw); FONTS.forEach(([f])=>document.fonts.load(fontCss(f,40)).then(draw).catch(()=>{})); }
