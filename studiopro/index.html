@@ -85,6 +85,13 @@
     grid-template-columns:minmax(0,1fr) minmax(0,1.05fr) minmax(0,.85fr);grid-template-areas:"left stage right"}
   .obtn{width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:8px;padding:.55rem .75rem;font-size:.85rem;font-weight:600;color:var(--fg)}
   .obtn:hover{border-color:var(--accent)}
+  .obtns{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  #outCard .sec{margin:0}
+  @media (min-width:700px){
+    .sp-stage{max-height:calc(100vh - 80px);overflow-y:auto}
+    .sp-grid .sp-stage #previewSvg{max-width:min(440px, calc(100vh - 430px));min-width:220px}
+    .sp-stage > .py-4{padding-top:8px;padding-bottom:8px}
+  }
   .obtn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
   .obtn-primary:hover{background:var(--accent-h)}
   .prow{display:flex;align-items:center;gap:.5rem;border:1px solid var(--line);border-radius:8px;padding:.4rem .5rem}
@@ -213,22 +220,12 @@
 
 
 
-    <hr class="border-slate-100">
-
-    <section class="space-y-3">
-      <h2 class="sec">4. Druckbogen (A4)</h2>
-      <div class="grid grid-cols-2 gap-3 items-end">
-        <div><label class="lbl">Anzahl Buttons</label><input data-k="count" type="number" min="1" class="inp font-bold text-indigo-600"></div>
-        <button onclick="fillPage()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg py-2 text-sm font-medium">Seite ganz füllen</button>
-      </div>
-      <label class="flex items-center gap-2 text-xs text-slate-700"><input data-k="printCutLine" type="checkbox" class="accent-indigo-600 w-4 h-4"> Schnittlinie mitdrucken</label>
-      <p id="sheetInfo" class="text-xs text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-lg p-2"></p>
-    </section>
   </div>
   </div>
     <div class="card p-5">
       <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
         <h3 class="text-sm font-bold text-slate-700">Druckbogen A4</h3>
+        <p id="sheetInfo" class="w-full text-xs text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-lg p-2 order-last"></p>
         <div class="flex gap-2">
           <button onclick="addToSheet(5)" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-lg text-xs font-semibold">➕ Aktuelles Design (5×)</button>
           <button onclick="makePDF()" class="bg-slate-900 hover:bg-slate-700 text-white px-3 py-2 rounded-lg text-xs font-semibold">🖨 PDF erstellen</button>
@@ -289,20 +286,24 @@
         <span><span class="inline-block w-3 border-t-2 border-slate-700 align-middle mr-1"></span>Sichtbarer Bereich</span>
         <span>Hintergrund und Bild reichen bis zur Schnittkante – kein weißer Rand.</span>
       </div>
+    <div class="w-full space-y-2 mt-4 pt-4 border-t border-slate-200" id="outCard">
+      <h2 class="sec">Ausgabe</h2>
+      <div class="obtns">
+        <button onclick="outPng()" class="obtn obtn-primary">🖼 PNG (300 dpi)</button>
+        <button onclick="outPdf()" class="obtn">🖨 Buttons als PDF</button>
+        <button onclick="outSticker()" class="obtn">🏷 Aufkleber-PDF (4 × 5)</button>
+        <button onclick="openProjects()" class="obtn">💾 Zwischenspeichern</button>
+      </div>
+      <div class="flex flex-wrap gap-x-4 gap-y-1 items-center text-sm">
+        <label class="flex items-center gap-1.5">Aufkleber <select id="stickerShape" class="inp" style="width:auto;padding:.2rem .4rem"><option value="round">rund</option><option value="square">eckig</option></select></label>
+        <label class="flex items-center gap-1.5"><input data-k="printCutLine" type="checkbox" class="accent-indigo-600 w-4 h-4"> Schnittmarken</label>
+        <label class="flex items-center gap-1.5"><input id="outDb" type="checkbox" checked class="accent-indigo-600 w-4 h-4"> in Datenbank speichern</label>
+      </div>
+      <p id="outStatus" class="text-xs text-slate-600"></p>
+    </div>
     </div>
 
   <div class="sp-col sp-right">
-    <div class="card p-5 space-y-2" id="outCard">
-      <h2 class="sec">Ausgabe</h2>
-      <button onclick="outPng()" class="obtn obtn-primary">🖼 PNG speichern (300 dpi)</button>
-      <button onclick="outPdf()" class="obtn">🖨 Buttons als PDF (ganze Seite)</button>
-      <div class="flex gap-2 items-center flex-wrap"><button onclick="outSticker()" class="obtn flex-1">🏷 Aufkleber-Druckvorlage als PDF (4 × 5)</button>
-        <label class="text-xs font-semibold text-slate-700 flex items-center gap-1">Form <select id="stickerShape" class="inp" style="width:auto;padding:.3rem .4rem"><option value="round">Rund</option><option value="square">Eckig</option></select></label></div>
-      <label class="flex items-center gap-2 text-sm"><input data-k="printCutLine" type="checkbox" class="accent-indigo-600 w-4 h-4"> Mit Schnittmarken</label>
-      <label class="flex items-center gap-2 text-sm"><input id="outDb" type="checkbox" checked class="accent-indigo-600 w-4 h-4"> Projekt dabei in der Datenbank speichern</label>
-      <button onclick="openProjects()" class="obtn">💾 Zwischenspeichern / Projekt öffnen</button>
-      <p id="outStatus" class="text-xs text-slate-600"></p>
-    </div>
     <div class="card p-5 space-y-3">
       <h2 class="sec">Bearbeiten</h2>
       <!-- Kontext-Bearbeitung -->
@@ -1156,9 +1157,9 @@ function render() {
 
   $("#previewSvg").innerHTML = buildButton("p", state.view === "finished" ? "finished" : "edit");
 
-  const n = Math.min(state.count, L.max);
-  $("#sheetInfo").innerHTML = (state.sheetItems || []).length ? `Gedruckt wird die <b>Druckbogen-Liste</b> (siehe Druckbogen). Ohne Liste: ${n} × aktuelles Design.` : `<b>${n} Buttons</b> à ${finish} mm (Schnitt ${cut} mm) auf A4 · maximal ${L.max} (${L.cols} × ${L.rows})`;
-  $("[data-k=count]").max = L.max;
+  state.count = L.max;   // Bogen immer voll (z. B. 25 mm → 35 Buttons)
+  const n = L.max;
+  $("#sheetInfo").innerHTML = (state.sheetItems || []).length ? `Gedruckt wird die <b>Druckbogen-Liste</b> (siehe Druckbogen). Ohne Liste: ${n} × aktuelles Design.` : `<b>${n} Buttons</b> à ${finish} mm (Schnitt ${cut} mm) auf A4 (${L.cols} × ${L.rows})`;
 
   clearTimeout(sheetTimer);
   sheetTimer = setTimeout(() => {
@@ -2458,6 +2459,10 @@ takeHandoff();
 takeQueue();
 render();
 startSnap = JSON.stringify(state);
+// Am Handy die Ausgabe unter die angeheftete Vorschau in die rechte Spalte verschieben
+const mqOut = matchMedia("(max-width:699px)");
+function placeOut() { const box = $("#outCard"); if (mqOut.matches) { $(".sp-right").prepend(box); box.className = "card p-5 space-y-2"; } else { $(".sp-stage").append(box); box.className = "w-full space-y-2 mt-4 pt-4 border-t border-slate-200"; } }
+mqOut.addEventListener ? mqOut.addEventListener("change", placeOut) : mqOut.addListener(placeOut); placeOut();
 // Direktaufruf der KI-Maske per Link …#ki-generator (z. B. Verknüpfung auf dem Startbildschirm)
 function checkHash() { if (location.hash === "#ki-generator" || location.hash === "#auto-button") openGen(); }
 window.addEventListener("hashchange", checkHash);
