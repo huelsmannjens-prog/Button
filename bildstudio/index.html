@@ -723,7 +723,8 @@ function sendTemplate(){
   const sb = window.BUTTON_SB;
   if (sb && sb.url && sb.key){ // anonym an die Sammelstelle (Supabase) – ohne Konto, Name oder Geräteinfos
     fetch(sb.url.replace(/\/$/,"")+"/rest/v1/templates",{method:"POST",keepalive:proj.img.length<60000,
-      headers:{"apikey":sb.key,"Authorization":"Bearer "+sb.key,"Content-Type":"application/json","Prefer":"return=minimal"},
+      // Neue "sb_publishable_…"-Schlüssel gehören nur in den apikey-Header, alte JWT-Schlüssel zusätzlich als Bearer
+      headers:Object.assign({"apikey":sb.key,"Content-Type":"application/json","Prefer":"return=minimal"}, sb.key.startsWith("eyJ")?{"Authorization":"Bearer "+sb.key}:{}),
       body:JSON.stringify({project:proj})}).catch(()=>{});
     return;
   }
