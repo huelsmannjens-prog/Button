@@ -83,6 +83,13 @@
   .sp-grid{box-sizing:border-box;max-width:1500px;width:100%;margin:0 auto;display:grid;gap:16px;align-items:start;
     padding:16px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));
     grid-template-columns:minmax(0,1fr) minmax(0,1.05fr) minmax(0,.85fr);grid-template-areas:"left stage right"}
+  .obtn{width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:8px;padding:.55rem .75rem;font-size:.85rem;font-weight:600;color:var(--fg)}
+  .obtn:hover{border-color:var(--accent)}
+  .obtn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .obtn-primary:hover{background:var(--accent-h)}
+  .prow{display:flex;align-items:center;gap:.5rem;border:1px solid var(--line);border-radius:8px;padding:.4rem .5rem}
+  .prow .pn{flex:1;min-width:0;font-size:.85rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .prow .pd{display:block;font-size:.68rem;font-weight:400;color:var(--muted)}
   .sp-col{display:flex;flex-direction:column;gap:16px;min-width:0}
   .sp-left{grid-area:left}.sp-right{grid-area:right}
   .sp-stage{grid-area:stage;position:sticky;top:68px;z-index:5}
@@ -122,10 +129,8 @@
   </h1>
   <div class="flex gap-1.5 sm:gap-2 text-sm overflow-x-auto whitespace-nowrap">
     <button onclick="openGen()" title="Automatischer Button" class="hbtn hbtn-primary">✨ Auto</button>
-    <button onclick="saveProject()" title="Projekt speichern (Strg+S)" class="hbtn">💾<span class="hidden md:inline"> Speichern</span></button>
-    <label title="Projekt laden" class="hbtn cursor-pointer">📂<span class="hidden md:inline"> Laden</span>
-      <input type="file" id="loadProjectInput" accept=".json,application/json" class="hidden">
-    </label>
+    <button onclick="quickSave()" title="Zwischenspeichern (Strg+S)" class="hbtn">💾<span class="hidden md:inline"> Speichern</span></button>
+    <button onclick="openProjects()" title="Gespeicherte Projekte öffnen" class="hbtn">📂<span class="hidden md:inline"> Projekte</span></button>
     <button onclick="openInbox()" title="Eingesandte Vorlagen aus dem Bildstudio abrufen" class="hbtn">📥<span class="hidden md:inline"> Vorlagen</span></button>
     <button onclick="resetAll()" title="Neues Design" class="hbtn">✚<span class="hidden md:inline"> Neu</span></button>
     <button onclick="doPrint()" title="Drucken / PDF (Strg+P)" class="hbtn hbtn-primary">🖨 PDF<span class="hidden md:inline"> drucken</span></button>
@@ -287,6 +292,17 @@
     </div>
 
   <div class="sp-col sp-right">
+    <div class="card p-5 space-y-2" id="outCard">
+      <h2 class="sec">Ausgabe</h2>
+      <button onclick="outPng()" class="obtn obtn-primary">🖼 PNG speichern (300 dpi)</button>
+      <button onclick="outPdf()" class="obtn">🖨 Buttons als PDF (ganze Seite)</button>
+      <div class="flex gap-2 items-center flex-wrap"><button onclick="outSticker()" class="obtn flex-1">🏷 Aufkleber-Druckvorlage als PDF (4 × 5)</button>
+        <label class="text-xs font-semibold text-slate-700 flex items-center gap-1">Form <select id="stickerShape" class="inp" style="width:auto;padding:.3rem .4rem"><option value="round">Rund</option><option value="square">Eckig</option></select></label></div>
+      <label class="flex items-center gap-2 text-sm"><input data-k="printCutLine" type="checkbox" class="accent-indigo-600 w-4 h-4"> Mit Schnittmarken</label>
+      <label class="flex items-center gap-2 text-sm"><input id="outDb" type="checkbox" checked class="accent-indigo-600 w-4 h-4"> Projekt dabei in der Datenbank speichern</label>
+      <button onclick="openProjects()" class="obtn">💾 Zwischenspeichern / Projekt öffnen</button>
+      <p id="outStatus" class="text-xs text-slate-600"></p>
+    </div>
     <div class="card p-5 space-y-3">
       <h2 class="sec">Bearbeiten</h2>
       <!-- Kontext-Bearbeitung -->
@@ -571,6 +587,34 @@
   </div>
 </div>
 
+<!-- ============ Projekte: zwischenspeichern und wieder öffnen ============ -->
+<div id="projModal" class="no-print hidden fixed inset-0 z-[85] bg-slate-900/60 flex items-end sm:items-center justify-center p-0 sm:p-4" onclick="if(event.target===this)closeProjects()">
+  <div class="bg-white w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 space-y-3 max-h-[94vh] overflow-y-auto" style="padding-bottom:max(1.25rem, env(safe-area-inset-bottom))">
+    <div class="flex justify-between items-center">
+      <h3 class="text-base font-bold text-slate-800">💾 Projekte</h3>
+      <button onclick="closeProjects()" class="ubtn" title="Schließen">✕</button>
+    </div>
+    <div class="flex gap-2">
+      <input id="projName" class="inp" placeholder="Name des Projekts">
+      <button onclick="saveCurrent()" class="obtn obtn-primary" style="width:auto;white-space:nowrap">Zwischenspeichern</button>
+    </div>
+    <p class="text-[11px] text-slate-500">Gespeichert wird in der Datenbank (auf Handy und Notebook abrufbar) und zusätzlich auf diesem Gerät. Für die Datenbank musst du angemeldet sein.</p>
+    <div id="projLogin" class="space-y-2 stylebox">
+      <p class="text-xs font-semibold text-slate-700">Anmelden (Supabase-Konto)</p>
+      <input id="projEmail" type="email" autocomplete="username" placeholder="E-Mail" class="inp">
+      <input id="projPw" type="password" autocomplete="current-password" placeholder="Passwort" class="inp">
+      <button onclick="projLogin()" class="obtn">Anmelden</button>
+    </div>
+    <p id="projStatus" class="text-xs text-slate-600"></p>
+    <div id="projList" class="space-y-1.5"></div>
+    <div class="flex flex-wrap gap-2 pt-2 border-t border-slate-200 text-xs">
+      <button onclick="saveProject()" class="chip">⬇ Als Datei (.json)</button>
+      <label class="chip cursor-pointer">⬆ Datei öffnen<input type="file" id="loadProjectInput" accept=".json,application/json" class="hidden"></label>
+      <button id="projLogout" onclick="sbLogout(); renderProjects()" class="chip hidden">Abmelden</button>
+    </div>
+  </div>
+</div>
+
 <div id="print-area"></div>
 
 <script>
@@ -601,19 +645,20 @@ function toBin(t) {
   return [...new TextEncoder().encode(t)].map(b => b.toString(2).padStart(8, "0")).join(" ");
 }
 const PAGE = { w: 210, h: 297, margin: 5, gap: 1 };   // mm
-const STORE_KEY = "buttonStudioPro3";  // gleicher Speicher wie v3, wird beim Laden umgestellt
+const STORE_KEY = "buttonStudioProLast";  // letzter Stand (automatisch), wird nicht mehr beim Start geladen
 const C = 150, RC = 145;   // SVG-Mittelpunkt, Radius Schnittkreis (Einheiten)
 
 const DEFAULTS = {
   buttonSize: "25", customCut: "",
   bgType: "solid", bgColor1: "#ffffff", bgColor2: "#4f46e5", bgAngle: 90,
   img: "", imgAR: 1, imgFit: "slice", imgOpacity: 100, imgScale: 1, imgRotate: 0, imgX: 0, imgY: 0,
-  topText: "", topSize: 18, topFont: FONTS[0][0], topSpacing: 1, topInset: 5, topAuto: true, topSpan: 130, topRot: 0,
-  middleText: "Dein Text", middleSize: 40, middleFont: FONTS[0][0], middleAuto: true, middleW: 150, middleX: 0, middleY: 0, middleRotate: 0,
-  bottomText: "", bottomSize: 18, bottomFont: FONTS[0][0], bottomSpacing: 1, bottomInset: 5, bottomAuto: true, bottomSpan: 110, bottomRot: 0, bottomUpright: true,
+  topText: "", topSize: 16.6, topFont: FONTS[0][0], topSpacing: 1, topInset: 5, topAuto: false, topSpan: 130, topRot: 0,
+  middleText: "Dein Text", middleSize: 16.6, middleFont: FONTS[0][0], middleAuto: false, middleW: 150, middleX: 0, middleY: 0, middleRotate: 0,
+  bottomText: "", bottomSize: 16.6, bottomFont: FONTS[0][0], bottomSpacing: 1, bottomInset: 5, bottomAuto: false, bottomSpan: 110, bottomRot: 0, bottomUpright: true,
   count: 35, printCutLine: true,
   view: "edit",
-  topMode: "auto", middleMode: "auto", bottomMode: "auto",
+  topMode: "own", middleMode: "own", bottomMode: "own", topInit: true, middleInit: true, bottomInit: true,
+  projId: "", projName: "",
   topBinary: false, middleBinary: false, bottomBinary: false,
   imageLocked: false, topLocked: false, middleLocked: false, bottomLocked: false,
   sheetItems: []
@@ -696,6 +741,12 @@ function dims() {
   const Rf = RC * finish / cut;
   return { finish, cut, Rf, Rfold: Rf + (RC - Rf) * 0.4 };
 }
+
+// Schriftgröße: intern in SVG-Einheiten (290 = Schnittdurchmesser), angezeigt in pt
+const PT_MM = 25.4 / 72;
+const uToPt = u => u * dims().cut / 290 / PT_MM;
+// Standard: 6 pt bei 25 mm, andere Größen im gleichen Verhältnis
+function defaultSizeU() { const { finish, cut } = dims(); return Math.round(6 * finish / 25 * PT_MM * 290 / cut * 10) / 10; }
 
 function layout() {
   const { cut } = dims();
@@ -1097,6 +1148,7 @@ function render() {
   $("#pickBtn").textContent = state.img ? "Bild ersetzen …" : "Bild auswählen …";
   $$("[data-out]").forEach(el => {
     const k = el.dataset.out, v = state[k];
+    if (/^(top|middle|bottom)Size$/.test(k)) { el.textContent = uToPt(v).toFixed(1).replace(".", ",") + " pt"; return; }
     el.textContent = (k === "imgScale" ? Number(v).toFixed(2) : (typeof v === "number" ? Math.round(v * 10) / 10 : v)) + (el.dataset.unit || "");
   });
   updateFontPickers();
@@ -1136,6 +1188,7 @@ function bindInputs() {
     const ev = (el.tagName === "SELECT" || el.type === "checkbox") ? "change" : "input";
     el.addEventListener(ev, () => {
       const k = el.dataset.k;
+      const before = (k === "buttonSize" || k === "customCut") ? dims() : null;
       if (el.type === "checkbox") state[k] = el.checked;
       else if (el.type === "range") state[k] = parseFloat(el.value);
       else if (k === "count") state[k] = Math.max(1, parseInt(el.value) || 1);
@@ -1143,7 +1196,11 @@ function bindInputs() {
       // Schriftgröße von Hand geändert -> Automatik aus
       if (/^(top|middle|bottom)Size$/.test(k)) state[k.replace("Size", "Auto")] = false;
       if (k === "middleAuto" && el.checked) state.middleW = Math.max(60, midGeomManualWidth());
-      if (k === "buttonSize" || k === "customCut") clampCount();
+      if (before) {   // Schrift im gleichen Verhältnis zur Buttongröße mitskalieren
+        const a = dims(), f = before.cut * a.finish / (before.finish * a.cut);
+        ["top", "middle", "bottom"].forEach(w => { if (!state[w + "Auto"]) state[w + "Size"] = Math.round(state[w + "Size"] * f * 10) / 10; });
+        clampCount();
+      }
       render();
     });
   });
@@ -1430,7 +1487,7 @@ document.addEventListener("keydown", e => {
   const mod = e.ctrlKey || e.metaKey;
   if (mod && e.key.toLowerCase() === "z" && !typing) { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (mod && e.key.toLowerCase() === "y" && !typing) { e.preventDefault(); redo(); return; }
-  if (mod && e.key.toLowerCase() === "s") { e.preventDefault(); saveProject(); return; }
+  if (mod && e.key.toLowerCase() === "s") { e.preventDefault(); quickSave(); return; }
   if (mod && e.key.toLowerCase() === "p") { e.preventDefault(); doPrint(); return; }
   if (typing) { if (e.key === "Escape") e.target.blur(); return; }
   if (e.key === "Escape" && sel) { sel = null; render(); return; }
@@ -1785,12 +1842,13 @@ async function makePDF() {
       const Q = P.filter(q => q.page === pg);
       Q.forEach(q => doc.addImage(imgs[q.di], "JPEG", q.x, q.y, L.cut, L.cut, "btn" + q.di, "FAST"));
       doc.setDrawColor(156, 163, 175); doc.setLineWidth(0.15);
-      Q.forEach(q => { if (E[q.di].design.printCutLine !== false) doc.circle(q.x + L.cut / 2, q.y + L.cut / 2, L.cut / 2, "S"); });
+      Q.forEach(q => { if (state.printCutLine !== false) doc.circle(q.x + L.cut / 2, q.y + L.cut / 2, L.cut / 2, "S"); });
       doc.setFontSize(6); doc.setTextColor(150);
       doc.text(`DIY-Button-StudioPro · ${E[0].design.buttonSize} mm Buttons · Schnitt ${L.cut} mm · Seite ${pg + 1}/${pages} · ${Q.length} von ${P.length} Stück · mit 100 % drucken`, 5, 294.5);
     }
     const blob = doc.output("blob"), name = `Buttons_${E[0].design.buttonSize}mm_${new Date().toISOString().slice(0, 10)}.pdf`;
     await saveFile(name, blob, "PDF gespeichert");
+    return true;
   } catch (e) {
     console.error(e);
     toast("PDF konnte nicht erstellt werden – öffne den Druckdialog …");
@@ -1815,7 +1873,9 @@ window.addEventListener("beforeprint", preparePrint);
 window.addEventListener("afterprint", () => { $("#print-area").innerHTML = ""; });
 
 // ================= Speichern / Laden =================
+let startSnap = null;   // Zustand direkt nach dem Start: ein unberührtes neues Projekt überschreibt den letzten Stand nicht
 function persist() {
+  if (startSnap && JSON.stringify(state) === startSnap) return;
   try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
   catch (e) { try { localStorage.setItem(STORE_KEY, JSON.stringify({ ...state, img: "" })); } catch (_) {} }
 }
@@ -1827,7 +1887,11 @@ function saveProject() {
   saveFile("button_projekt_" + new Date().toISOString().slice(0, 10) + ".json", json, "Projekt gespeichert");
 }
 function migrate(d) {
-  if (/^button-studio-pro-[2-8]$/.test(d.app || "")) return upgradeKeys(d);
+  if (/^button-studio-pro-[2-8]$/.test(d.app || "")) {
+    d = upgradeKeys(d);
+    ["top", "middle", "bottom"].forEach(w => { if (d[w + "Mode"] === undefined) { d[w + "Mode"] = "auto"; d[w + "Init"] = false; } });
+    return d;
+  }
   const m = {};
   const map = { buttonSize: "buttonSize", buttonCount: "count", imgScale: "imgScale", imgX: "imgX", imgY: "imgY",
     uploadedImageBase64: "img", bgColor1: "bgColor1", bgColor2: "bgColor2", bgGradientAngle: "bgAngle",
@@ -1842,6 +1906,7 @@ function migrate(d) {
     if (m[k]) { const f = FONTS.find(([v]) => v.split(",")[0].replace(/'/g, "") === m[k].split(",")[0].replace(/'/g, "")); m[k] = f ? f[0] : FONTS[0][0]; }
   });
   m.topAuto = m.middleAuto = m.bottomAuto = false;
+  m.topMode = m.middleMode = m.bottomMode = "auto"; m.topInit = m.middleInit = m.bottomInit = false;
   return m;
 }
 $("#loadProjectInput").addEventListener("change", e => {
@@ -1849,15 +1914,13 @@ $("#loadProjectInput").addEventListener("change", e => {
   const rd = new FileReader();
   rd.onload = ev => {
     try {
-      state = { ...DEFAULTS, ...migrate(JSON.parse(ev.target.result)) }; setImage(state.img);
-      if (state.img) { const im = new Image(); im.onload = () => { state.imgAR = im.naturalWidth / im.naturalHeight || 1; render(); }; im.src = state.img; }
-      clampCount(); sel = null; render(); toast("Projekt geladen");
+      loadState(JSON.parse(ev.target.result)); closeProjects(); toast("Projekt geladen");
     } catch (err) { toast("Die Datei konnte nicht gelesen werden."); }
     e.target.value = "";
   };
   rd.readAsText(f);
 });
-function resetAll() { setImage(""); state = { ...DEFAULTS }; sel = null; render(); toast("Neues Design begonnen"); }
+function resetAll() { persist(); setImage(""); state = { ...DEFAULTS }; sel = null; render(); toast("Neues Projekt begonnen"); }
 
 // ================= Automatischer Button (ohne KI, direkt im Tool) =================
 // Kleine Symbol-Bibliothek (Pfade im 100×100-Feld)
@@ -2208,43 +2271,193 @@ function addTemplatesToSheet(list) {
   return { added, skipped };
 }
 const sbConf = () => { const c = window.BUTTON_SB || {}; return c.url && c.key ? { url: c.url.replace(/\/$/, ""), key: c.key } : null; };
+// ----- Anmeldung (bleibt auf diesem Gerät gespeichert, bis „Abmelden“) -----
+const sbAuth = () => { try { return JSON.parse(localStorage.getItem("sbAuth") || "null"); } catch (e) { return null; } };
+const sbLoggedIn = () => !!sbAuth();
+function sbLogout() { try { localStorage.removeItem("sbAuth"); sessionStorage.removeItem("sbToken"); } catch (e) {} }
+async function sbToken(body, grant) {
+  const c = sbConf();
+  const r = await fetch(c.url + "/auth/v1/token?grant_type=" + grant, { method: "POST", headers: { apikey: c.key, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error("Anmeldung fehlgeschlagen: " + (d.error_description || d.msg || r.status));
+  localStorage.setItem("sbAuth", JSON.stringify({ at: d.access_token, rt: d.refresh_token }));
+}
+async function sbLogin(email, pw) {
+  if (!sbConf()) throw new Error("Die Datenbank ist noch nicht eingerichtet.");
+  await sbToken({ email, password: pw }, "password");
+}
+async function sbFetch(path, opts = {}) {
+  const c = sbConf(); if (!c) throw new Error("Die Datenbank ist noch nicht eingerichtet.");
+  for (let i = 0; i < 2; i++) {
+    const a = sbAuth(); if (!a) throw new Error("Bitte zuerst anmelden.");
+    const r = await fetch(c.url + path, { ...opts, headers: { apikey: c.key, Authorization: "Bearer " + a.at, "Content-Type": "application/json", ...(opts.headers || {}) } });
+    if (r.status !== 401) return r;
+    try { await sbToken({ refresh_token: a.rt }, "refresh_token"); } catch (e) { sbLogout(); throw new Error("Anmeldung abgelaufen – bitte neu anmelden."); }
+  }
+  throw new Error("Anmeldung abgelaufen – bitte neu anmelden.");
+}
+
+// ----- Eingesandte Vorlagen aus dem Bildstudio -----
 function openInbox() {
   $("#inboxModal").classList.remove("hidden");
-  const tok = sessionStorage.getItem("sbToken");
-  $("#inboxLogin").classList.toggle("hidden", !!tok);
-  $("#inboxStatus").textContent = sbConf() ? (tok ? "Du bist angemeldet." : "Melde dich mit deinem Supabase-Konto an.") : "Die Sammelstelle ist noch nicht eingerichtet.";
+  $("#inboxLogin").classList.toggle("hidden", sbLoggedIn());
+  $("#inboxStatus").textContent = sbConf() ? (sbLoggedIn() ? "Du bist angemeldet." : "Melde dich mit deinem Supabase-Konto an.") : "Die Sammelstelle ist noch nicht eingerichtet.";
 }
 function closeInbox() { $("#inboxModal").classList.add("hidden"); }
 async function fetchInbox() {
-  const c = sbConf(), st = $("#inboxStatus"); if (!c) { st.textContent = "Die Sammelstelle ist noch nicht eingerichtet."; return; }
+  const st = $("#inboxStatus");
   try {
-    let tok = sessionStorage.getItem("sbToken");
-    if (!tok) {
-      st.textContent = "Anmeldung …";
-      const r = await fetch(c.url + "/auth/v1/token?grant_type=password", { method: "POST", headers: { apikey: c.key, "Content-Type": "application/json" }, body: JSON.stringify({ email: $("#inboxEmail").value.trim(), password: $("#inboxPw").value }) });
-      const d = await r.json(); if (!r.ok) throw new Error("Anmeldung fehlgeschlagen: " + (d.error_description || d.msg || r.status));
-      tok = d.access_token; sessionStorage.setItem("sbToken", tok); $("#inboxLogin").classList.add("hidden");
-    }
+    if (!sbLoggedIn()) { st.textContent = "Anmeldung …"; await sbLogin($("#inboxEmail").value.trim(), $("#inboxPw").value); $("#inboxLogin").classList.add("hidden"); }
     st.textContent = "Vorlagen werden geladen …";
-    const h = { apikey: c.key, Authorization: "Bearer " + tok };
-    const r = await fetch(c.url + "/rest/v1/templates?select=id,project&order=created_at.asc&limit=50", { headers: h });
-    if (r.status === 401) { sessionStorage.removeItem("sbToken"); $("#inboxLogin").classList.remove("hidden"); throw new Error("Anmeldung abgelaufen – bitte erneut anmelden."); }
+    const r = await sbFetch("/rest/v1/templates?select=id,project&order=created_at.asc&limit=50");
     const rows = await r.json(); if (!r.ok) throw new Error("Laden fehlgeschlagen.");
     if (!rows.length) { st.textContent = "Keine neuen Vorlagen."; return; }
     const res = addTemplatesToSheet(rows.map(x => x.project)); render(); refreshPreviewSheet();
-    await fetch(c.url + "/rest/v1/templates?id=in.(" + rows.map(x => x.id).join(",") + ")", { method: "DELETE", headers: h });
+    await sbFetch("/rest/v1/templates?id=in.(" + rows.map(x => x.id).join(",") + ")", { method: "DELETE" });
     st.textContent = `${res.added} Vorlage(n) je 5× auf den Druckbogen gelegt` + (res.skipped ? `, ${res.skipped} hatten eine andere Buttongröße.` : ".");
-  } catch (e) { st.textContent = e.message || String(e); }
+  } catch (e) { st.textContent = e.message || String(e); if (!sbLoggedIn()) $("#inboxLogin").classList.remove("hidden"); }
+}
+
+// ================= Projekte zwischenspeichern und wieder öffnen =================
+const LOCAL_PROJ = "buttonStudioProProjects";
+const newId = () => (crypto.randomUUID ? crypto.randomUUID() : "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (c ^ Math.random() * 16 >> c / 4).toString(16)));
+const localList = () => { try { return JSON.parse(localStorage.getItem(LOCAL_PROJ) || "[]"); } catch (e) { return []; } };
+const fmtDate = t => new Date(t).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
+function defaultName() { return (state.middleText || state.topText || "Button").split("\n")[0].trim().slice(0, 40) || "Button"; }
+function projPayload() { return { app: "button-studio-pro-8", ...state }; }
+function saveLocal(entry) {
+  const list = localList().filter(x => x.id !== entry.id); list.unshift(entry);
+  while (list.length) { try { localStorage.setItem(LOCAL_PROJ, JSON.stringify(list.slice(0, 30))); return true; } catch (e) { if (list.length <= 1) return false; list.pop(); } }
+  return false;
+}
+// Speichert das aktuelle Projekt: Datenbank (wenn angemeldet) und dieses Gerät. Gibt eine Statusmeldung zurück.
+async function storeProject(name) {
+  if (!state.projId) state.projId = newId();
+  state.projName = name || state.projName || defaultName();
+  const now = new Date().toISOString(), project = projPayload();
+  const local = saveLocal({ id: state.projId, name: state.projName, updated: now, project });
+  let db = "";
+  if (sbConf() && sbLoggedIn()) {
+    try {
+      const r = await sbFetch("/rest/v1/projects?on_conflict=id", { method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify({ id: state.projId, name: state.projName, updated_at: now, project }) });
+      if (!r.ok) { const t = await r.text(); throw new Error(/projects/.test(t) && r.status === 404 ? "Tabelle „projects“ fehlt noch" : "Fehler " + r.status); }
+      db = "in der Datenbank";
+    } catch (e) { db = "nicht in der Datenbank (" + (e.message || e) + ")"; }
+  } else db = "nicht in der Datenbank (nicht angemeldet)";
+  return `„${state.projName}“ gespeichert: ${db}` + (local ? ", auf diesem Gerät" : ", auf diesem Gerät kein Platz mehr") + ".";
+}
+async function quickSave() { if (!state.projName) return openProjects(); toast("Speichern …"); toast(await storeProject()); }
+async function saveCurrent() {
+  const st = $("#projStatus"); st.textContent = "Speichern …";
+  st.textContent = await storeProject($("#projName").value.trim()); renderProjects(true);
+}
+async function projLogin() {
+  const st = $("#projStatus"); st.textContent = "Anmeldung …";
+  try { await sbLogin($("#projEmail").value.trim(), $("#projPw").value); st.textContent = "Angemeldet."; renderProjects(); }
+  catch (e) { st.textContent = e.message || String(e); }
+}
+function openProjects() { $("#projModal").classList.remove("hidden"); $("#projName").value = state.projName || defaultName(); $("#projStatus").textContent = ""; renderProjects(); }
+function closeProjects() { $("#projModal").classList.add("hidden"); }
+let dbRows = [];
+async function renderProjects(keepStatus) {
+  const li = sbLoggedIn();
+  $("#projLogin").classList.toggle("hidden", li || !sbConf()); $("#projLogout").classList.toggle("hidden", !li);
+  const draw = () => {
+    const map = new Map();
+    dbRows.forEach(r => map.set(r.id, { id: r.id, name: r.name, updated: r.updated_at, db: true }));
+    localList().forEach(x => { const m = map.get(x.id); if (m) { m.local = true; if (x.updated > m.updated) m.updated = x.updated; } else map.set(x.id, { id: x.id, name: x.name, updated: x.updated, local: true }); });
+    const items = [...map.values()].sort((a, b) => (b.updated || "").localeCompare(a.updated || ""));
+    let last = null; try { last = localStorage.getItem(STORE_KEY) ? 1 : null; } catch (e) {}
+    $("#projList").innerHTML = (last ? `<div class="prow"><span class="pn">Letzter Stand (automatisch)<span class="pd">vor dem letzten Neustart bzw. „Neu“</span></span><button class="chip" onclick="openLast()">Öffnen</button></div>` : "") +
+      (items.length ? items.map(x => `<div class="prow"><span class="pn">${esc(x.name)}<span class="pd">${x.updated ? fmtDate(x.updated) : ""} · ${[x.db ? "☁ Datenbank" : "", x.local ? "📱 dieses Gerät" : ""].filter(Boolean).join(" + ")}</span></span>
+        <button class="chip" onclick="openProject('${x.id}')">Öffnen</button><button class="ubtn" title="Löschen" onclick="deleteProject('${x.id}')">🗑</button></div>`).join("")
+        : `<p class="text-xs text-slate-500">Noch keine gespeicherten Projekte.</p>`);
+  };
+  draw();
+  if (li && sbConf()) {
+    try { const r = await sbFetch("/rest/v1/projects?select=id,name,updated_at&order=updated_at.desc&limit=200"); if (r.ok) dbRows = await r.json(); else if (!keepStatus) $("#projStatus").textContent = r.status === 404 ? "Die Tabelle „projects“ fehlt noch in der Datenbank." : "Datenbank-Liste konnte nicht geladen werden."; }
+    catch (e) { if (!keepStatus) $("#projStatus").textContent = e.message; $("#projLogin").classList.toggle("hidden", sbLoggedIn()); }
+    draw();
+  } else dbRows = [];
+}
+function loadState(d) {
+  persist();
+  state = { ...DEFAULTS, ...migrate(d) }; setImage(state.img);
+  if (state.img) { const im = new Image(); im.onload = () => { state.imgAR = im.naturalWidth / im.naturalHeight || 1; render(); }; im.src = state.img; }
+  clampCount(); sel = null; render();
+}
+async function openProject(id) {
+  const st = $("#projStatus"); let p = (localList().find(x => x.id === id) || {}).project;
+  const remote = dbRows.find(r => r.id === id), loc = localList().find(x => x.id === id);
+  if (remote && (!loc || remote.updated_at > loc.updated)) {
+    st.textContent = "Wird geladen …";
+    try { const r = await sbFetch("/rest/v1/projects?select=project&id=eq." + id); const rows = await r.json(); if (rows[0]) p = rows[0].project; } catch (e) { st.textContent = e.message; }
+  }
+  if (!p) { st.textContent = "Projekt konnte nicht geladen werden."; return; }
+  loadState(p); state.projId = id; closeProjects(); toast(`„${state.projName || "Projekt"}“ geöffnet`);
+}
+function openLast() { try { const d = JSON.parse(localStorage.getItem(STORE_KEY)); if (d) { loadState({ app: "button-studio-pro-8", ...d }); closeProjects(); toast("Letzter Stand geöffnet"); } } catch (e) {} }
+async function deleteProject(id) {
+  const x = localList().find(p => p.id === id) || dbRows.find(r => r.id === id) || {};
+  if (!confirm(`Projekt „${x.name || ""}“ löschen?`)) return;
+  try { localStorage.setItem(LOCAL_PROJ, JSON.stringify(localList().filter(p => p.id !== id))); } catch (e) {}
+  if (dbRows.some(r => r.id === id)) { try { await sbFetch("/rest/v1/projects?id=eq." + id, { method: "DELETE" }); } catch (e) { $("#projStatus").textContent = e.message; } dbRows = dbRows.filter(r => r.id !== id); }
+  if (state.projId === id) state.projId = "";
+  renderProjects(true);
+}
+
+// ================= Ausgabe (wie im Bildstudio) =================
+const outMsg = t => { $("#outStatus").textContent = t; };
+async function outDb() { if (!$("#outDb").checked) return ""; const m = await storeProject(); return " · " + m; }
+async function canvasBlob(cv) { return new Promise((ok, no) => cv.toBlob(b => b ? ok(b) : no(new Error("Bild konnte nicht erzeugt werden.")), "image/png")); }
+async function outPng() {
+  outMsg("PNG wird erstellt …");
+  try {
+    const { finish, cut } = dims(), S = Math.round(cut / 25.4 * 300);
+    const cv = await drawButtonCanvas({ ...state }, S);
+    if (state.printCutLine !== false) { const g = cv.getContext("2d"); g.setTransform(1, 0, 0, 1, 0, 0); g.strokeStyle = "#888"; g.lineWidth = Math.max(1, S / 600); g.beginPath(); g.arc(S / 2, S / 2, S / 2 - g.lineWidth / 2, 0, Math.PI * 2); g.stroke(); }
+    const name = `button-${finish}mm-zuschnitt-${cut}mm.png`;
+    await saveFile(name, await canvasBlob(cv), "PNG gespeichert");
+    outMsg(`${name} (${S}×${S} px, 300 dpi)` + await outDb());
+  } catch (e) { outMsg(e.message || String(e)); }
+}
+async function outPdf() { outMsg("PDF wird erstellt …"); if (!await makePDF()) { outMsg("PDF konnte nicht erstellt werden."); return; } outMsg("PDF mit allen Buttons des Druckbogens erstellt (fortlaufende Seiten). Mit 100 % drucken." + await outDb()); }
+async function outSticker() {
+  outMsg("PDF wird erstellt …");
+  try {
+    if (!window.jspdf) await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+    const W = 210, H = 297, margin = 10, gap = PT_MM, cols = 4, rows = 5;   // 1 pt Abstand als Schnittkante
+    const size = Math.min((W - 2 * margin - (cols - 1) * gap) / cols, (H - 2 * margin - (rows - 1) * gap) / rows);
+    const x0 = (W - (cols * size + (cols - 1) * gap)) / 2, y0 = (H - (rows * size + (rows - 1) * gap)) / 2;
+    const square = $("#stickerShape").value === "square";
+    // Sichtbare Vorderseite aus dem Zuschnitt herausschneiden und auf Aufklebergröße bringen
+    const { finish, cut } = dims(), out = Math.round(size / 25.4 * 300), big = Math.round(out * cut / finish);
+    const src = await drawButtonCanvas({ ...state }, big);
+    const cv = document.createElement("canvas"); cv.width = cv.height = out; const g = cv.getContext("2d");
+    g.fillStyle = "#fff"; g.fillRect(0, 0, out, out);
+    if (!square) { g.beginPath(); g.arc(out / 2, out / 2, out / 2, 0, Math.PI * 2); g.clip(); }
+    g.drawImage(src, (big - out) / 2, (big - out) / 2, out, out, 0, 0, out, out);
+    const img = cv.toDataURL("image/png");
+    const doc = new window.jspdf.jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+    doc.setDrawColor(150); doc.setLineWidth(0.1);
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const x = x0 + c * (size + gap), y = y0 + r * (size + gap);
+      doc.addImage(img, "PNG", x, y, size, size, "stk", "FAST");
+      if (state.printCutLine !== false) square ? doc.rect(x, y, size, size, "S") : doc.circle(x + size / 2, y + size / 2, size / 2, "S");
+    }
+    await saveFile(`aufkleber-4x5-${square ? "eckig" : "rund"}.pdf`, doc.output("blob"), "Aufkleber-PDF gespeichert");
+    outMsg(`Aufkleber-PDF: 20 Stück à ${size.toFixed(1).replace(".", ",")} mm, ${square ? "eckig" : "rund"}, Rand 10 mm, 1 pt Abstand.` + await outDb());
+  } catch (e) { outMsg(e.message || String(e)); }
 }
 // ================= Start =================
 $$("[data-style]").forEach(el => el.innerHTML = styleEditor(el.dataset.style));
 bindInputs();
 initFontPickers();
-restore();
-clampCount();
+clampCount();   // immer mit neuem Projekt starten (letzter Stand ist unter „Projekte“ abrufbar)
 takeHandoff();
 takeQueue();
 render();
+startSnap = JSON.stringify(state);
 // Direktaufruf der KI-Maske per Link …#ki-generator (z. B. Verknüpfung auf dem Startbildschirm)
 function checkHash() { if (location.hash === "#ki-generator" || location.hash === "#auto-button") openGen(); }
 window.addEventListener("hashchange", checkHash);
