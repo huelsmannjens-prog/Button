@@ -19,7 +19,7 @@
     html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
     .no-print { display: none !important; }
     #print-area { display: block !important; }
-    #print-area svg { display: block; width: 210mm; height: 297mm; }
+    #print-area svg { display: block; width: 210mm; height: 297mm; break-after: page; page-break-after: always; }
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   }
   .hidden { display: none !important; }
@@ -984,14 +984,17 @@ function sheetLayout(E) { return withState(E[0].design, layout); }
 function sheetPositions(E, L) {
   const pos = [], fill = $("#fillRest") && $("#fillRest").checked && (state.sheetItems || []).length;
   E.forEach((e, i) => { for (let k = 0; k < e.n; k++) pos.push(i); });
-  if (fill) { let j = 0; while (pos.length < L.max) { pos.push(j % E.length); j++; } }
-  return pos.slice(0, L.max).map((di, idx) => {
-    const c = idx % L.cols, r = Math.floor(idx / L.cols);
-    return { di, x: L.x0 + c * (L.cut + PAGE.gap), y: L.y0 + r * (L.cut + PAGE.gap) };
+  // Fortlaufend: ist eine Seite voll, geht es auf der nächsten weiter
+  if (fill) { let j = 0; const target = Math.max(1, Math.ceil(pos.length / L.max)) * L.max; while (pos.length < target) { pos.push(j % E.length); j++; } }
+  return pos.map((di, i) => {
+    const page = Math.floor(i / L.max), idx = i % L.max, c = idx % L.cols, r = Math.floor(idx / L.cols);
+    return { di, page, x: L.x0 + c * (L.cut + PAGE.gap), y: L.y0 + r * (L.cut + PAGE.gap) };
   });
 }
-function buildSheet(p) {
-  const E = sheetEntries(), L = sheetLayout(E), P = sheetPositions(E, L);
+const pageCount = (P, L) => Math.max(1, Math.ceil(P.length / L.max));
+function buildSheet(p, page) {
+  const E = sheetEntries(), L = sheetLayout(E), all = sheetPositions(E, L);
+  const pg = page === undefined ? pageCount(all, L) - 1 : page, P = all.filter(q => q.page === pg);
   const syms = E.map((e, i) => withState(e.design, () => `<symbol id="${p}i${i}" viewBox="5 5 290 290" overflow="visible">${buildButton(p + "b" + i, "print")}</symbol>`)).join("");
   const uses = P.map(q => `<use href="#${p}i${q.di}" xlink:href="#${p}i${q.di}" x="${r2(q.x)}" y="${r2(q.y)}" width="${L.cut}" height="${L.cut}"/>`).join("");
   return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${PAGE.w} ${PAGE.h}" width="${PAGE.w}mm" height="${PAGE.h}mm">
@@ -1001,20 +1004,21 @@ function addToSheet(n) {
   const d = designSnap(), items = state.sheetItems ? [...state.sheetItems] : [];
   if (items.length && items[0].design.buttonSize !== d.buttonSize) { toast(`Auf dem Bogen sind ${items[0].design.buttonSize}-mm-Buttons – bitte gleiche Größe wählen oder Liste leeren.`); return; }
   const L = layout(), used = items.reduce((a, it) => a + it.count, 0);
-  if (used >= L.max) { toast(`Der Bogen ist voll (${L.max} Plätze).`); return; }
-  const cnt = Math.min(n, L.max - used);
+  const cnt = n;
   items.push({ design: d, count: cnt }); state.sheetItems = items; render(); refreshPreviewSheet();
-  toast(`➕ ${cnt} Stück hinzugefügt – Bogen: ${used + cnt} / ${L.max}`);
+  const tot = used + cnt, pages = Math.ceil(tot / L.max);
+  toast(`➕ ${cnt} Stück hinzugefügt – ${tot} Buttons auf ${pages} Seite${pages > 1 ? "n" : ""}`);
 }
 function removeSheetItem(i) { state.sheetItems = state.sheetItems.filter((_, k) => k !== i); render(); refreshPreviewSheet(); }
-function setItemCount(i, v) { const L = sheetLayout(sheetEntries()); state.sheetItems[i].count = clamp(parseInt(v) || 1, 1, L.max); render(); refreshPreviewSheet(); }
+function setItemCount(i, v) { const L = sheetLayout(sheetEntries()); state.sheetItems[i].count = clamp(parseInt(v) || 1, 1, 999); render(); refreshPreviewSheet(); }
 function clearSheet() { state.sheetItems = []; render(); refreshPreviewSheet(); }
 function renderSheetList() {
   const items = state.sheetItems || [], wrap = $("#sheetListWrap");
   wrap.classList.toggle("hidden", !items.length);
   if (!items.length) return;
   const L = sheetLayout(sheetEntries()), used = items.reduce((a, it) => a + it.count, 0);
-  $("#sheetListInfo").textContent = `${items.length} Design(s) · ${Math.min(used, L.max)} / ${L.max} Plätze belegt`;
+  const pages = Math.max(1, Math.ceil(used / L.max));
+  $("#sheetListInfo").textContent = `${items.length} Design(s) · ${used} Buttons · ${pages} Seite${pages > 1 ? "n" : ""} (je ${L.max} Plätze)` + (pages > 1 ? " · Vorschau zeigt die letzte Seite" : "");
   $("#sheetList").innerHTML = items.map((it, i) => `<div class="flex items-center gap-1 border border-slate-200 rounded-lg p-1 bg-white">
       <svg viewBox="0 0 300 300" style="width:44px;height:44px">${withState(it.design, () => buildButton("t" + i + "_", "preview"))}</svg>
       <input type="number" min="1" value="${it.count}" onchange="setItemCount(${i}, this.value)" class="w-12 border border-slate-300 rounded p-1 text-xs" title="Anzahl">
@@ -1025,7 +1029,8 @@ function refreshPreviewSheet() {
   $("#prevSheet").innerHTML = buildSheet("w");
   const sv = $("#prevSheet svg"); sv.removeAttribute("width"); sv.removeAttribute("height"); sv.style.width = "100%"; sv.style.height = "auto"; sv.style.display = "block";
   const items = state.sheetItems || [], L = sheetLayout(sheetEntries()), used = items.reduce((a, it) => a + it.count, 0);
-  $("#prevSheetInfo").textContent = items.length ? `Bogen: ${used} / ${L.max} belegt` : "Noch leer – „Hinzufügen“ drücken";
+  const pg = Math.max(1, Math.ceil(used / L.max));
+  $("#prevSheetInfo").textContent = items.length ? `${used} Buttons · Seite ${pg} von ${pg}: ${used - (pg - 1) * L.max} / ${L.max}` : "Noch leer – „Hinzufügen“ drücken";
 }
 
 // ================= Rendern =================
@@ -1736,13 +1741,16 @@ async function makePDF() {
       const cv = await drawButtonCanvas(E[i].design, Math.round(L.cut * PXMM));
       imgs.push(cv.toDataURL("image/jpeg", 0.93));
     }
-    P.forEach(q => {
-      doc.addImage(imgs[q.di], "JPEG", q.x, q.y, L.cut, L.cut, "btn" + q.di, "FAST");
-    });
-    doc.setDrawColor(156, 163, 175); doc.setLineWidth(0.15);
-    P.forEach(q => { if (E[q.di].design.printCutLine !== false) doc.circle(q.x + L.cut / 2, q.y + L.cut / 2, L.cut / 2, "S"); });
-    doc.setFontSize(6); doc.setTextColor(150);
-    doc.text(`DIY-Button-StudioPro · ${E[0].design.buttonSize} mm Buttons · Schnitt ${L.cut} mm · ${P.length} Stück · mit 100 % drucken`, 5, 294.5);
+    const pages = pageCount(P, L);
+    for (let pg = 0; pg < pages; pg++) {   // fortlaufend, eine A4-Seite je voller Bogen
+      if (pg) doc.addPage("a4", "portrait");
+      const Q = P.filter(q => q.page === pg);
+      Q.forEach(q => doc.addImage(imgs[q.di], "JPEG", q.x, q.y, L.cut, L.cut, "btn" + q.di, "FAST"));
+      doc.setDrawColor(156, 163, 175); doc.setLineWidth(0.15);
+      Q.forEach(q => { if (E[q.di].design.printCutLine !== false) doc.circle(q.x + L.cut / 2, q.y + L.cut / 2, L.cut / 2, "S"); });
+      doc.setFontSize(6); doc.setTextColor(150);
+      doc.text(`DIY-Button-StudioPro · ${E[0].design.buttonSize} mm Buttons · Schnitt ${L.cut} mm · Seite ${pg + 1}/${pages} · ${Q.length} von ${P.length} Stück · mit 100 % drucken`, 5, 294.5);
+    }
     const blob = doc.output("blob"), name = `Buttons_${E[0].design.buttonSize}mm_${new Date().toISOString().slice(0, 10)}.pdf`;
     await saveFile(name, blob, "PDF gespeichert");
   } catch (e) {
@@ -1763,7 +1771,7 @@ async function saveFile(name, data, okMsg) {
   toast(okMsg);
 }
 
-function preparePrint() { $("#print-area").innerHTML = buildSheet("s"); }
+function preparePrint() { const E = sheetEntries(), L = sheetLayout(E), n = pageCount(sheetPositions(E, L), L); let h = ""; for (let i = 0; i < n; i++) h += buildSheet("s" + i + "_", i); $("#print-area").innerHTML = h; }
 function doPrint() { makePDF(); }
 window.addEventListener("beforeprint", preparePrint);
 window.addEventListener("afterprint", () => { $("#print-area").innerHTML = ""; });
@@ -2145,7 +2153,7 @@ function takeQueue() {
   try { q = JSON.parse(localStorage.getItem("bildstudioQueue") || "[]"); localStorage.removeItem("bildstudioQueue"); } catch (e) {}
   if (!q.length) return;
   const { added, skipped } = addTemplatesToSheet(q);
-  if (added) setTimeout(() => toast(`➕ ${added} Vorlage(n) aus dem Bildstudio je 5× auf den Druckbogen gelegt` + (skipped ? ` (${skipped} passten nicht)` : "")), 800);
+  if (added) setTimeout(() => toast(`➕ ${added} Vorlage(n) aus dem Bildstudio je 5× auf den Druckbogen gelegt` + (skipped ? ` (${skipped} mit anderer Buttongröße übersprungen)` : "")), 800);
 }
 // ================= Sammelstelle: eingesandte Vorlagen abrufen =================
 function addTemplatesToSheet(list) {
@@ -2153,9 +2161,7 @@ function addTemplatesToSheet(list) {
   for (const proj of list) {
     const d = { ...DEFAULTS, ...migrate(proj), view: "edit" }; delete d.sheetItems;
     if (items.length && items[0].design.buttonSize !== d.buttonSize) { skipped++; continue; }
-    const max = withState(d, () => layout().max), used = items.reduce((a, it) => a + it.count, 0);
-    if (used >= max) { skipped++; continue; }
-    items.push({ design: d, count: Math.min(5, max - used) }); added++;
+    items.push({ design: d, count: 5 }); added++;
   }
   state.sheetItems = items;
   // Die neueste Vorlage auch im Editor öffnen, damit man sie gleich sieht und anpassen kann
@@ -2189,7 +2195,7 @@ async function fetchInbox() {
     if (!rows.length) { st.textContent = "Keine neuen Vorlagen."; return; }
     const res = addTemplatesToSheet(rows.map(x => x.project)); render(); refreshPreviewSheet();
     await fetch(c.url + "/rest/v1/templates?id=in.(" + rows.map(x => x.id).join(",") + ")", { method: "DELETE", headers: h });
-    st.textContent = `${res.added} Vorlage(n) je 5× auf den Druckbogen gelegt` + (res.skipped ? `, ${res.skipped} passten nicht (andere Größe oder Bogen voll).` : ".");
+    st.textContent = `${res.added} Vorlage(n) je 5× auf den Druckbogen gelegt` + (res.skipped ? `, ${res.skipped} hatten eine andere Buttongröße.` : ".");
   } catch (e) { st.textContent = e.message || String(e); }
 }
 // ================= Start =================

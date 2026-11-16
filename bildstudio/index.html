@@ -98,18 +98,8 @@ details.sub-box>div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
   <div class="col col-left">
     <section class="panel edit" aria-label="Button und Motiv">
     <fieldset><legend>Button</legend>
-      <label>Größe<select id="preset">
-        <option value="25,37" selected>25 mm (Zuschnitt 37 mm)</option>
-        <option value="32,44">32 mm (Zuschnitt 44 mm)</option>
-        <option value="37,49">37 mm (Zuschnitt 49 mm)</option>
-        <option value="50,65">50 mm (Zuschnitt 65 mm)</option>
-        <option value="56,68">56 mm (Zuschnitt 68 mm)</option>
-        <option value="75,87">75 mm (Zuschnitt 87 mm)</option>
-      </select></label>
-      <div class="row">
-        <label>Button-Ø mm<input type="number" id="faceMm" step="0.5" value="25"></label>
-        <label>Zuschnitt-Ø mm<input type="number" id="cutMm" step="0.5" value="37"></label>
-      </div>
+      <p class="note">Button 25 mm · Zuschnitt 37 mm</p>
+      <input type="hidden" id="faceMm" value="25"><input type="hidden" id="cutMm" value="37">
       <label>Hintergrundfarbe<input type="color" id="bgColor" value="#000000"></label>
     </fieldset>
 
@@ -484,7 +474,6 @@ function draw(){ cancelAnimationFrame(raf); raf = requestAnimationFrame(()=>{ sy
 
 /* ---------- Steuerung ---------- */
 document.addEventListener("input", e=>{ if(e.target.closest(".edit")) draw(); });
-$("preset").addEventListener("input", ()=>{ const [f,c]=v("preset").split(","); $("faceMm").value=f; $("cutMm").value=c; draw(); });
 $("resetImg").onclick = ()=>{ state.ox=state.oy=0; $("zoom").value=1; $("rot").value = state.mode==="logo" ? 15 : 0; draw(); };
 if (document.fonts){ document.fonts.ready.then(draw); FONTS.forEach(([f])=>document.fonts.load(fontCss(f,40)).then(draw).catch(()=>{})); }
 
