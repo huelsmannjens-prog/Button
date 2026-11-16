@@ -11,7 +11,7 @@
 <title>DIY-Button-StudioPro 1.6.1</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fredoka:wght@500;700&family=Pacifico&family=Permanent+Marker&family=Roboto+Slab:wght@700&family=Saira+Stencil+One&family=Big+Shoulders+Stencil+Display:wght@800&family=Anton&family=Lobster&family=Bangers&family=Orbitron:wght@700;900&family=Caveat:wght@700&family=VT323&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bricolage+Grotesque:wght@500;700&family=Bebas+Neue&family=Fredoka:wght@500;700&family=Pacifico&family=Permanent+Marker&family=Roboto+Slab:wght@700&family=Saira+Stencil+One&family=Big+Shoulders+Stencil+Display:wght@800&family=Anton&family=Lobster&family=Bangers&family=Orbitron:wght@700;900&family=Caveat:wght@700&family=VT323&display=swap" rel="stylesheet">
 <style>
   @page { size: A4 portrait; margin: 0; }
   #print-area { display: none; }
@@ -75,26 +75,60 @@
   .fp-opt:hover, .fp-opt.on { background:#eef2ff; }
   .fp-opt .s { display:block; font-size:1.15rem; font-weight:700; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .fp-opt .n { display:block; font-size:.65rem; color:#64748b; font-family: Arial, sans-serif; }
+
+  /* ===== Layout und Farben wie im Button-Bildstudio ===== */
+  :root{--bg:#eef0f3;--panel:#fff;--fg:#1b2230;--muted:#5d6676;--line:#d5d9e0;--accent:#2f5bd3;--accent-h:#2449ad;--soft:#e4e9f6}
+  body{background:var(--bg)!important;color:var(--fg);font-family:Inter,system-ui,sans-serif}
+  .sp-grid *,.sp-grid *::before,.sp-grid *::after{box-sizing:border-box}
+  .sp-grid{box-sizing:border-box;max-width:1500px;width:100%;margin:0 auto;display:grid;gap:16px;align-items:start;
+    padding:16px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));
+    grid-template-columns:minmax(0,1fr) minmax(0,1.05fr) minmax(0,.85fr);grid-template-areas:"left stage right"}
+  .sp-col{display:flex;flex-direction:column;gap:16px;min-width:0}
+  .sp-left{grid-area:left}.sp-right{grid-area:right}
+  .sp-stage{grid-area:stage;position:sticky;top:68px;z-index:5}
+  .sp-stage #previewSvg{width:100%;max-width:440px}
+  @media (max-width:1099px){ .sp-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"stage left" "stage right"} }
+  @media (max-width:699px){
+    .sp-grid{grid-template-columns:minmax(0,1fr);grid-template-areas:"stage" "left" "right"}
+    .sp-stage{top:56px;padding:8px!important;box-shadow:0 6px 14px rgba(0,0,0,.18)!important}
+    .sp-stage #previewSvg{max-width:min(100%,34vh)}
+    .sp-stage > .py-4{padding-top:4px;padding-bottom:4px}
+    .sp-stage [data-show="view==edit"]{display:none!important}
+  }
+  .card{border-color:var(--line)!important;border-radius:10px!important;box-shadow:none!important;background:var(--panel)}
+  h2.sec{font-family:"Bricolage Grotesque",Inter,sans-serif;text-transform:none;letter-spacing:0;font-size:15px;color:var(--fg)}
+  header.sp-head{background:var(--panel);color:var(--fg);border-bottom:1px solid var(--line);box-shadow:none}
+  header.sp-head h1{font-family:"Bricolage Grotesque",Inter,sans-serif}
+  .hbtn{background:var(--panel);border:1px solid var(--line);color:var(--fg);border-radius:6px;font-weight:600}
+  .hbtn:hover{background:var(--soft)}
+  .hbtn.hbtn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .hbtn.hbtn-primary:hover{background:var(--accent-h)}
+  .bg-indigo-600{background-color:var(--accent)!important}.hover\:bg-indigo-500:hover{background-color:var(--accent-h)!important}
+  .accent-indigo-600,input[type=range],input[type=checkbox],input[type=radio]{accent-color:var(--accent)}
+  .chip{border-color:#c9d4f2;background:var(--soft);color:var(--accent)}
+  .chip:hover{background:#d6dff5}
+  .inp,.clr{border-color:var(--line)}
+  .seg{background:var(--soft)!important}
 </style>
 <script src="../supabase-config.js"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
-<header class="no-print bg-slate-900 text-white shadow py-2.5 px-3 md:px-6 flex gap-3 justify-between items-center sticky top-0 z-50" style="padding-top:max(.625rem, env(safe-area-inset-top))">
+<header class="no-print sp-head py-2.5 px-3 md:px-6 flex gap-3 justify-between items-center sticky top-0 z-50" style="padding-top:max(.625rem, env(safe-area-inset-top))">
   <h1 class="text-base sm:text-lg font-bold flex items-center gap-2 shrink-0">
     <span class="inline-block w-6 h-6 rounded-full bg-gradient-to-br from-indigo-400 to-pink-500"></span>
     <span class="hidden sm:inline">DIY-Button-StudioPro</span><span class="sm:hidden">Buttons</span>
-    <span class="text-xs font-medium bg-indigo-500/30 text-indigo-200 px-2 py-0.5 rounded-full">1.6.1</span>
+    <span class="text-xs font-medium px-2 py-0.5 rounded-full" style="background:var(--soft);color:var(--accent)">1.6.1</span>
   </h1>
   <div class="flex gap-1.5 sm:gap-2 text-sm overflow-x-auto whitespace-nowrap">
-    <button onclick="openGen()" title="Automatischer Button" class="hbtn !bg-pink-600 hover:!bg-pink-500 !text-white font-semibold">✨ Auto</button>
+    <button onclick="openGen()" title="Automatischer Button" class="hbtn hbtn-primary">✨ Auto</button>
     <button onclick="saveProject()" title="Projekt speichern (Strg+S)" class="hbtn">💾<span class="hidden md:inline"> Speichern</span></button>
     <label title="Projekt laden" class="hbtn cursor-pointer">📂<span class="hidden md:inline"> Laden</span>
       <input type="file" id="loadProjectInput" accept=".json,application/json" class="hidden">
     </label>
     <button onclick="openInbox()" title="Eingesandte Vorlagen aus dem Bildstudio abrufen" class="hbtn">📥<span class="hidden md:inline"> Vorlagen</span></button>
     <button onclick="resetAll()" title="Neues Design" class="hbtn">✚<span class="hidden md:inline"> Neu</span></button>
-    <button onclick="doPrint()" title="Drucken / PDF (Strg+P)" class="hbtn !bg-indigo-600 hover:!bg-indigo-500 font-semibold">🖨 PDF<span class="hidden md:inline"> drucken</span></button>
+    <button onclick="doPrint()" title="Drucken / PDF (Strg+P)" class="hbtn hbtn-primary">🖨 PDF<span class="hidden md:inline"> drucken</span></button>
   </div>
 </header>
 
@@ -102,11 +136,125 @@
 <div id="toast" class="no-print hidden fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm px-4 py-2 rounded-xl shadow-lg z-50"></div>
 <input id="imageUpload" type="file" accept="image/*" style="position:fixed;left:-100px;top:0;width:1px;height:1px;opacity:0">
 
-<main class="no-print flex-1 max-w-7xl w-full mx-auto p-3 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5">
+<main class="no-print sp-grid">
+  <!-- Links: Einstellungen und Druckbogen · Mitte: mitwandernde Vorschau · Rechts: Bearbeiten und Texte -->
+  <div class="sp-col sp-left">
+  <!-- ============ EINSTELLUNGEN ============ -->
+  <div class="card p-5">
+  <div class="seg grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-xl text-sm text-slate-600 mb-5" id="sideTabs">
+    <button data-tab="settings" class="on">⚙ Einstellungen</button><button data-tab="tools">🛠 Tools</button>
+  </div>
+  <div id="tab-tools" class="space-y-4 hidden">
+    <div class="box space-y-3 bg-indigo-50/60 border-indigo-100">
+      <h3 class="text-sm font-bold text-indigo-900">✨ Automatischer Button</h3>
+      <p class="text-xs text-slate-600">Texte eingeben – Farben, Schriften und ein passendes Motiv werden automatisch gewählt; danach erscheint eine Vorschau (5 Stück auf dem Bogen).</p>
+      <button onclick="openGen()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg py-2.5 text-sm font-semibold">Eingabemaske öffnen</button>
+    </div>
+    <div class="box space-y-2">
+      <h3 class="text-sm font-bold text-slate-700">Vollständiger Prompt</h3>
+      <p class="text-xs text-slate-600">Für Chats ohne den Skill „diy-button-generator“ – mit Platzhaltern zum Ausfüllen.</p>
+      <button onclick="copyText(fullPrompt({ top: '[Text oder leer]', middle: '[Text]', bottom: '[Text oder leer]', size: '25', variants: 1 }), 'Prompt kopiert')" class="chip">📋 Prompt mit Platzhaltern kopieren</button>
+    </div>
+  </div>
+  <div id="tab-settings" class="space-y-6">
 
-  <!-- ============ EDITOR / VORSCHAU (auf dem Handy oben) ============ -->
-  <div class="lg:col-span-7 lg:order-2 flex flex-col gap-5 lg:overflow-y-auto lg:max-h-[calc(100vh-84px)] lg:pr-1">
-    <div class="card p-4 sm:p-5 flex flex-col items-center">
+    <section class="space-y-3">
+      <h2 class="sec">1. Button-Größe</h2>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="lbl">Fertige Button-Größe</label>
+          <select data-k="buttonSize" class="inp">
+            <option value="25">25 mm</option><option value="32">32 mm</option><option value="37">37 mm</option>
+            <option value="50">50 mm</option><option value="56">56 mm</option><option value="75">75 mm</option>
+          </select>
+        </div>
+        <div>
+          <label class="lbl">Schnittkreis (mit Umschlag)</label>
+          <input id="cutDisplay" readonly class="inp bg-slate-50 text-slate-500 font-mono">
+        </div>
+      </div>
+      <div>
+        <label class="lbl">Eigener Schnittkreis in mm (leer = Standard)</label>
+        <input data-k="customCut" type="number" min="10" max="120" step="0.5" placeholder="z. B. 37" class="inp">
+      </div>
+    </section>
+
+    <hr class="border-slate-100">
+
+    <section class="space-y-3">
+      <h2 class="sec">2. Hintergrund</h2>
+      <div class="seg grid grid-cols-3 gap-1 p-1 bg-slate-100 rounded-lg text-xs text-slate-600" data-seg="bgType">
+        <button data-v="solid">Einfarbig</button><button data-v="linear">Linear</button><button data-v="radial">Radial</button>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="lbl" id="bgC1Lbl">Farbe</label><input data-k="bgColor1" type="color" class="clr"></div>
+        <div data-show="bgType!=solid"><label class="lbl">Endfarbe</label><input data-k="bgColor2" type="color" class="clr"></div>
+      </div>
+      <div data-show="bgType==linear">
+        <div class="flex justify-between"><label class="lbl">Verlaufswinkel</label><span class="val" data-out="bgAngle" data-unit="°"></span></div>
+        <input data-k="bgAngle" type="range" min="0" max="360">
+      </div>
+    </section>
+
+    <hr class="border-slate-100">
+
+    <section class="space-y-3" id="imageSection">
+      <h2 class="sec">3. Bild</h2>
+      <label id="dropZone" for="imageUpload" class="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition text-xs text-slate-500">
+        <span><b>Bild auswählen</b> oder hierher ziehen</span>
+      </label>
+      <p class="text-[11px] text-slate-400">Größe, Drehung und Position stellst du direkt im Editor ein (auf das Bild tippen).</p>
+    </section>
+
+
+
+    <hr class="border-slate-100">
+
+    <section class="space-y-3">
+      <h2 class="sec">4. Druckbogen (A4)</h2>
+      <div class="grid grid-cols-2 gap-3 items-end">
+        <div><label class="lbl">Anzahl Buttons</label><input data-k="count" type="number" min="1" class="inp font-bold text-indigo-600"></div>
+        <button onclick="fillPage()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg py-2 text-sm font-medium">Seite ganz füllen</button>
+      </div>
+      <label class="flex items-center gap-2 text-xs text-slate-700"><input data-k="printCutLine" type="checkbox" class="accent-indigo-600 w-4 h-4"> Schnittlinie mitdrucken</label>
+      <p id="sheetInfo" class="text-xs text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-lg p-2"></p>
+    </section>
+  </div>
+  </div>
+    <div class="card p-5">
+      <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
+        <h3 class="text-sm font-bold text-slate-700">Druckbogen A4</h3>
+        <div class="flex gap-2">
+          <button onclick="addToSheet(5)" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-lg text-xs font-semibold">➕ Aktuelles Design (5×)</button>
+          <button onclick="makePDF()" class="bg-slate-900 hover:bg-slate-700 text-white px-3 py-2 rounded-lg text-xs font-semibold">🖨 PDF erstellen</button>
+        </div>
+      </div>
+      <div id="sheetListWrap" class="mb-3 hidden">
+        <div class="flex justify-between items-center mb-1">
+          <span id="sheetListInfo" class="text-xs font-semibold text-slate-700"></span>
+          <div class="flex gap-3 text-xs">
+            <label class="flex items-center gap-1"><input type="checkbox" id="fillRest" class="accent-indigo-600" onchange="render(); refreshPreviewSheet()"> Rest auffüllen</label>
+            <button onclick="clearSheet()" class="text-rose-600 hover:underline">Liste leeren</button>
+          </div>
+        </div>
+        <div id="sheetList" class="flex flex-wrap gap-2"></div>
+      </div>
+      <div class="flex flex-col sm:flex-row gap-4 items-start">
+        <div id="sheetPreview" class="w-full sm:w-64 shrink-0 border border-slate-300 shadow-sm bg-white"></div>
+        <div class="text-xs text-slate-600 space-y-2">
+          <p class="font-semibold text-slate-700">So druckst du maßgenau:</p>
+          <ol class="list-decimal pl-4 space-y-1">
+            <li>Designs mit <b>„➕ Hinzufügen“</b> sammeln (je 5 Stück) – ohne Liste wird das aktuelle Design gedruckt.</li>
+            <li><b>„🖨 PDF erstellen“</b> – es entsteht ein fertiger A4-Bogen als PDF.</li>
+            <li>PDF drucken mit Skalierung <b>100 % / Tatsächliche Größe</b> (nicht „An Seite anpassen“).</li>
+          </ol>
+          <p class="text-slate-400">Zum Prüfen einen Schnittkreis nachmessen.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <div class="card sp-stage p-4 sm:p-5 flex flex-col items-center">
       <div class="w-full flex flex-wrap gap-2 justify-between items-center">
         <div class="flex items-center gap-2">
           <span class="text-sm font-bold text-slate-700">Editor</span>
@@ -130,6 +278,17 @@
         <button data-sel="bottom" class="flex-1 py-2 rounded-lg">⌣ Unten</button>
       </div>
 
+      <div class="w-full mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[11px] text-slate-500" data-show="view==edit">
+        <span><span class="inline-block w-3 border-t-2 border-dashed border-rose-400 align-middle mr-1"></span>Schnittkante</span>
+        <span><span class="inline-block w-3 border-t-2 border-dashed border-amber-400 align-middle mr-1"></span>Umschlagkante (ca.)</span>
+        <span><span class="inline-block w-3 border-t-2 border-slate-700 align-middle mr-1"></span>Sichtbarer Bereich</span>
+        <span>Hintergrund und Bild reichen bis zur Schnittkante – kein weißer Rand.</span>
+      </div>
+    </div>
+
+  <div class="sp-col sp-right">
+    <div class="card p-5 space-y-3">
+      <h2 class="sec">Bearbeiten</h2>
       <!-- Kontext-Bearbeitung -->
       <div id="ctx" class="w-full mt-3">
         <div data-ctx="none" class="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-xl p-3 leading-relaxed">
@@ -215,117 +374,8 @@
           <div data-show="bottomMode==own"><div data-style="bottom"></div></div>
         </div>
       </div>
-
-      <div class="w-full mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[11px] text-slate-500" data-show="view==edit">
-        <span><span class="inline-block w-3 border-t-2 border-dashed border-rose-400 align-middle mr-1"></span>Schnittkante</span>
-        <span><span class="inline-block w-3 border-t-2 border-dashed border-amber-400 align-middle mr-1"></span>Umschlagkante (ca.)</span>
-        <span><span class="inline-block w-3 border-t-2 border-slate-700 align-middle mr-1"></span>Sichtbarer Bereich</span>
-        <span>Hintergrund und Bild reichen bis zur Schnittkante – kein weißer Rand.</span>
-      </div>
     </div>
-
     <div class="card p-5">
-      <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
-        <h3 class="text-sm font-bold text-slate-700">Druckbogen A4</h3>
-        <div class="flex gap-2">
-          <button onclick="addToSheet(5)" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-lg text-xs font-semibold">➕ Aktuelles Design (5×)</button>
-          <button onclick="makePDF()" class="bg-slate-900 hover:bg-slate-700 text-white px-3 py-2 rounded-lg text-xs font-semibold">🖨 PDF erstellen</button>
-        </div>
-      </div>
-      <div id="sheetListWrap" class="mb-3 hidden">
-        <div class="flex justify-between items-center mb-1">
-          <span id="sheetListInfo" class="text-xs font-semibold text-slate-700"></span>
-          <div class="flex gap-3 text-xs">
-            <label class="flex items-center gap-1"><input type="checkbox" id="fillRest" class="accent-indigo-600" onchange="render(); refreshPreviewSheet()"> Rest auffüllen</label>
-            <button onclick="clearSheet()" class="text-rose-600 hover:underline">Liste leeren</button>
-          </div>
-        </div>
-        <div id="sheetList" class="flex flex-wrap gap-2"></div>
-      </div>
-      <div class="flex flex-col sm:flex-row gap-4 items-start">
-        <div id="sheetPreview" class="w-full sm:w-64 shrink-0 border border-slate-300 shadow-sm bg-white"></div>
-        <div class="text-xs text-slate-600 space-y-2">
-          <p class="font-semibold text-slate-700">So druckst du maßgenau:</p>
-          <ol class="list-decimal pl-4 space-y-1">
-            <li>Designs mit <b>„➕ Hinzufügen“</b> sammeln (je 5 Stück) – ohne Liste wird das aktuelle Design gedruckt.</li>
-            <li><b>„🖨 PDF erstellen“</b> – es entsteht ein fertiger A4-Bogen als PDF.</li>
-            <li>PDF drucken mit Skalierung <b>100 % / Tatsächliche Größe</b> (nicht „An Seite anpassen“).</li>
-          </ol>
-          <p class="text-slate-400">Zum Prüfen einen Schnittkreis nachmessen.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============ EINSTELLUNGEN ============ -->
-  <div class="lg:col-span-5 lg:order-1 card p-5 lg:overflow-y-auto lg:max-h-[calc(100vh-84px)]">
-  <div class="seg grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-xl text-sm text-slate-600 mb-5" id="sideTabs">
-    <button data-tab="settings" class="on">⚙ Einstellungen</button><button data-tab="tools">🛠 Tools</button>
-  </div>
-  <div id="tab-tools" class="space-y-4 hidden">
-    <div class="box space-y-3 bg-indigo-50/60 border-indigo-100">
-      <h3 class="text-sm font-bold text-indigo-900">✨ Automatischer Button</h3>
-      <p class="text-xs text-slate-600">Texte eingeben – Farben, Schriften und ein passendes Motiv werden automatisch gewählt; danach erscheint eine Vorschau (5 Stück auf dem Bogen).</p>
-      <button onclick="openGen()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg py-2.5 text-sm font-semibold">Eingabemaske öffnen</button>
-    </div>
-    <div class="box space-y-2">
-      <h3 class="text-sm font-bold text-slate-700">Vollständiger Prompt</h3>
-      <p class="text-xs text-slate-600">Für Chats ohne den Skill „diy-button-generator“ – mit Platzhaltern zum Ausfüllen.</p>
-      <button onclick="copyText(fullPrompt({ top: '[Text oder leer]', middle: '[Text]', bottom: '[Text oder leer]', size: '25', variants: 1 }), 'Prompt kopiert')" class="chip">📋 Prompt mit Platzhaltern kopieren</button>
-    </div>
-  </div>
-  <div id="tab-settings" class="space-y-6">
-
-    <section class="space-y-3">
-      <h2 class="sec">1. Button-Größe</h2>
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="lbl">Fertige Button-Größe</label>
-          <select data-k="buttonSize" class="inp">
-            <option value="25">25 mm</option><option value="32">32 mm</option><option value="37">37 mm</option>
-            <option value="50">50 mm</option><option value="56">56 mm</option><option value="75">75 mm</option>
-          </select>
-        </div>
-        <div>
-          <label class="lbl">Schnittkreis (mit Umschlag)</label>
-          <input id="cutDisplay" readonly class="inp bg-slate-50 text-slate-500 font-mono">
-        </div>
-      </div>
-      <div>
-        <label class="lbl">Eigener Schnittkreis in mm (leer = Standard)</label>
-        <input data-k="customCut" type="number" min="10" max="120" step="0.5" placeholder="z. B. 37" class="inp">
-      </div>
-    </section>
-
-    <hr class="border-slate-100">
-
-    <section class="space-y-3">
-      <h2 class="sec">2. Hintergrund</h2>
-      <div class="seg grid grid-cols-3 gap-1 p-1 bg-slate-100 rounded-lg text-xs text-slate-600" data-seg="bgType">
-        <button data-v="solid">Einfarbig</button><button data-v="linear">Linear</button><button data-v="radial">Radial</button>
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div><label class="lbl" id="bgC1Lbl">Farbe</label><input data-k="bgColor1" type="color" class="clr"></div>
-        <div data-show="bgType!=solid"><label class="lbl">Endfarbe</label><input data-k="bgColor2" type="color" class="clr"></div>
-      </div>
-      <div data-show="bgType==linear">
-        <div class="flex justify-between"><label class="lbl">Verlaufswinkel</label><span class="val" data-out="bgAngle" data-unit="°"></span></div>
-        <input data-k="bgAngle" type="range" min="0" max="360">
-      </div>
-    </section>
-
-    <hr class="border-slate-100">
-
-    <section class="space-y-3" id="imageSection">
-      <h2 class="sec">3. Bild</h2>
-      <label id="dropZone" for="imageUpload" class="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition text-xs text-slate-500">
-        <span><b>Bild auswählen</b> oder hierher ziehen</span>
-      </label>
-      <p class="text-[11px] text-slate-400">Größe, Drehung und Position stellst du direkt im Editor ein (auf das Bild tippen).</p>
-    </section>
-
-    <hr class="border-slate-100">
-
     <section class="space-y-3">
       <h2 class="sec">4. Textgestaltung für alle Texte</h2>
       <p class="text-[11px] text-slate-500">Gilt für jedes Textfeld, das auf „Wie alle Texte“ steht. Einzelne Felder kannst du im Editor eigen gestalten.</p>
@@ -335,19 +385,7 @@
         <div><div class="flex justify-between"><span class="lbl">Buchstabenabstand unten</span><span class="val" data-out="bottomSpacing"></span></div><input data-k="bottomSpacing" type="range" min="-2" max="15" step="0.5"></div>
       </div>
     </section>
-
-    <hr class="border-slate-100">
-
-    <section class="space-y-3">
-      <h2 class="sec">5. Druckbogen (A4)</h2>
-      <div class="grid grid-cols-2 gap-3 items-end">
-        <div><label class="lbl">Anzahl Buttons</label><input data-k="count" type="number" min="1" class="inp font-bold text-indigo-600"></div>
-        <button onclick="fillPage()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg py-2 text-sm font-medium">Seite ganz füllen</button>
-      </div>
-      <label class="flex items-center gap-2 text-xs text-slate-700"><input data-k="printCutLine" type="checkbox" class="accent-indigo-600 w-4 h-4"> Schnittlinie mitdrucken</label>
-      <p id="sheetInfo" class="text-xs text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-lg p-2"></p>
-    </section>
-  </div>
+    </div>
   </div>
 </main>
 
