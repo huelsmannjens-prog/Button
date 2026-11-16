@@ -299,7 +299,10 @@ document.addEventListener("click", e=>{
 function select(s){
   state.sel = s==="all" ? "all" : +s;
   document.querySelectorAll("#selTabs button").forEach(b=>b.setAttribute("aria-selected", String(b.dataset.sel)===String(state.sel)));
-  if (state.sel!=="all"){ const d=document.querySelector(`[data-flag="${state.sel}"]`).parentElement; d.open=true; }
+  if (state.sel!=="all"){ // gewählte Flagge aufklappen, die andere zuklappen
+    [1,2].forEach(n=>{ document.querySelector(`[data-flag="${n}"]`).parentElement.open = n===state.sel; });
+    document.querySelector(`[data-flag="${state.sel}"]`).parentElement.scrollIntoView({block:"nearest", behavior:"smooth"});
+  }
   draw();
 }
 $("selTabs").addEventListener("click", e=>{ const b=e.target.closest("button"); if(b) select(b.dataset.sel); });
@@ -378,6 +381,7 @@ function drawFlag(g, n, L){
 }
 
 function render(g, S, guides){
+  if (g===ctx) textHit = {};
   const {face, cut} = geom(); const pxmm = S / cut; const R = S/2;
   g.save(); g.clearRect(0,0,S,S);
   g.beginPath(); g.arc(R,R,R,0,Math.PI*2); g.clip();
@@ -411,6 +415,7 @@ function render(g, S, guides){
   const mt = v("midText");
   if (mt){
     const px = num("midSize")/PT_PER_MM*pxmm; g.font = fontCss(v("midFont"), px);
+    if (g===ctx) textHit.mid = {cx:R, cy:R+num("midY")*pxmm, w:g.measureText(mt).width*num("midWidth")/100, h:px};
     g.save(); g.translate(R, R + num("midY")*pxmm); g.scale(num("midWidth")/100, 1);
     if (sw>0){ g.lineWidth=sw*2; g.strokeText(mt,0,0); } g.fillText(mt,0,0); g.restore();
   }
@@ -432,6 +437,7 @@ function arcField(g, k, R, pxmm, face, sw, top){
     for (let i=0;i<3;i++){ const r = outer - px/2; px *= (num(k+"Span")*Math.PI/180*r) / m.total; px = Math.min(px, 9*pxmm); m = measure(px); }
   }
   const r = outer - px/2;
+  if (g===ctx) textHit[k] = {r, h:px, ang: top?-Math.PI/2:Math.PI/2, half: m.total/r/2};
   arcText(g, [...text], m.ws, track*px*0.5, R, R, r, top, sw);
 }
 function arcText(g, chars, widths, spacing, cx, cy, r, top, sw){
@@ -443,6 +449,20 @@ function arcText(g, chars, widths, spacing, cx, cy, r, top, sw){
     if(sw>0){ g.lineWidth=sw*2; g.strokeText(c,0,0); } g.fillText(c,0,0); g.restore();
     ang += (top?1:-1)*(w+spacing)/r;
   });
+}
+// Tipp auf einen Text in der Vorschau: zugehöriges Eingabefeld öffnen und markieren
+let textHit = {};
+function hitText(x, y){
+  const R = cv.width/2;
+  for (const k of ["top","bottom"]){ const t=textHit[k]; if(!t || !v(k+"Text")) continue;
+    const dx=x-R, dy=y-R, d=Math.hypot(dx,dy); let da=Math.atan2(dy,dx)-t.ang; da=Math.atan2(Math.sin(da),Math.cos(da));
+    if (Math.abs(d-t.r) < t.h*0.7 && Math.abs(da) < t.half + 0.05) return k; }
+  const m=textHit.mid; if (m && v("midText") && Math.abs(x-m.cx) < m.w/2+8 && Math.abs(y-m.cy) < m.h*0.6) return "mid";
+  return null;
+}
+function editText(k){
+  const d=document.querySelector(`[data-text="${k}"]`).parentElement; d.open=true;
+  const inp=$(k+"Text"); inp.scrollIntoView({block:"center", behavior:"smooth"}); inp.focus({preventScroll:true}); inp.select();
 }
 let raf=0;
 function draw(){ cancelAnimationFrame(raf); raf = requestAnimationFrame(()=>{ syncUi(); render(ctx, cv.width, true); }); }
@@ -511,7 +531,9 @@ cv.addEventListener("pointermove", e=>{ if(!pts.has(e.pointerId)||!gest) return;
   if (Math.hypot(dx,dy) > 6*pt.k) gest.moved=true;
   if (gest.moved && gest.t){ applyMove(gest.t, gest.s0, dx, dy); draw(); } });
 const up = e=>{
-  if (gest && !gest.moved && pts.size===1 && state.mode==="logo"){ const pt=cvPoint(e); const n=hitFlag(pt.x,pt.y); select(n||"all"); }
+  if (gest && !gest.moved && pts.size===1){ const pt=cvPoint(e), k=hitText(pt.x,pt.y);
+    if (k) editText(k);
+    else if (state.mode==="logo"){ const n=hitFlag(pt.x,pt.y); select(n||"all"); } }
   pts.delete(e.pointerId); if(pts.size<2) pinch=null; if(!pts.size) gest=null; };
 cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", e=>{ pts.delete(e.pointerId); pinch=null; if(!pts.size) gest=null; });
 cv.addEventListener("wheel", e=>{ const t=gestureTarget(); if(!t) return; e.preventDefault(); applyZoom(t, snap(t), e.deltaY<0?1.06:1/1.06); draw(); }, {passive:false});
