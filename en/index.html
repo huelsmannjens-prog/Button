@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Button Workshop</title>
+<link rel="icon" href="../studiopro/icon-192.png">
+<style>
+:root{--bg:#eef0f3;--card:#fff;--fg:#1b2230;--muted:#5d6676;--line:#d5d9e0}
+@media (prefers-color-scheme:dark){:root{--bg:#13161c;--card:#1c2029;--fg:#e7eaf0;--muted:#9aa3b2;--line:#2e3441;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif;padding:32px max(16px,env(safe-area-inset-left))}
+main{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1{font-size:26px;margin:0 0 4px}
+p{margin:0;color:var(--muted)}
+a.app{display:flex;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;color:inherit;text-decoration:none}
+a.app:hover,a.app:focus-visible{border-color:#2f5bd3;outline:none}
+a.app img{width:56px;height:56px;border-radius:12px;flex:none}
+a.app b{display:block;font-size:17px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Button Workshop</h1>
+  <p>Two tools for your pin buttons. Tap one and add it as its own app via the browser menu with “Add to Home screen”.</p>
+  <a class="app" href="studiopro/"><img src="../studiopro/icon-192.png" alt=""><span><b>DIY Button StudioPro</b><span>Design buttons, texts along the arc, A4 print sheet as PDF</span></span></a>
+  <a class="app" href="bildstudio/"><img src="../bildstudio/icon-192.png" alt=""><span><b>Button Image Studio</b><span>Find motifs, generate them with AI, remove backgrounds and crop round</span></span></a>
+  <p><a href="../" style="color:inherit">Deutsche Version</a></p>
+</main>
+</body>
+</html>
