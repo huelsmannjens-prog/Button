@@ -2157,7 +2157,11 @@ function addTemplatesToSheet(list) {
     if (used >= max) { skipped++; continue; }
     items.push({ design: d, count: Math.min(5, max - used) }); added++;
   }
-  state.sheetItems = items; return { added, skipped };
+  state.sheetItems = items;
+  // Die neueste Vorlage auch im Editor öffnen, damit man sie gleich sieht und anpassen kann
+  const last = list[list.length - 1];
+  if (last) { state = { ...DEFAULTS, ...migrate(last), sheetItems: items }; setImage(state.img); sel = null; clampCount(); }
+  return { added, skipped };
 }
 const sbConf = () => { const c = window.BUTTON_SB || {}; return c.url && c.key ? { url: c.url.replace(/\/$/, ""), key: c.key } : null; };
 function openInbox() {
