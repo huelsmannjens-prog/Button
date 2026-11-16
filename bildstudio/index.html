@@ -165,6 +165,13 @@ details.sub-box>div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
       <label>Drehen <input type="range" id="rot" min="-180" max="180" step="1" value="0"></label>
 
       <div id="logoBox" style="display:flex;flex-direction:column;gap:10px">
+        <label style="gap:6px">Was bearbeitest du gerade? (oder in der Vorschau auf eine Flagge tippen)
+          <div class="tabs" role="tablist" id="selTabs">
+            <button role="tab" data-sel="all" aria-selected="true">Ganzes Logo</button>
+            <button role="tab" data-sel="1" aria-selected="false">Obere Flagge</button>
+            <button role="tab" data-sel="2" aria-selected="false">Untere Flagge</button>
+          </div>
+        </label>
         <div class="row">
           <label class="check"><input type="checkbox" id="lgRing" checked> Kreis ums Logo</label>
           <label class="check"><input type="checkbox" id="lgMirror"> Spiegeln</label>
@@ -216,7 +223,7 @@ details.sub-box>div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
 (() => {
 const $ = id => document.getElementById(id);
 const cv = $("preview"), ctx = cv.getContext("2d");
-const state = { mode:"logo", img:null, flagImg:{1:null,2:null}, ox:0, oy:0, credit:"" };
+const state = { mode:"logo", sel:"all", img:null, flagImg:{1:null,2:null}, ox:0, oy:0, credit:"" };
 const store = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}} };
 const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const v = id => $(id).value, num = id => +$(id).value, on = id => $(id).checked;
@@ -252,7 +259,8 @@ document.querySelectorAll("[data-flag]").forEach(box=>{
     <div class="row"><label>Farbe<input type="color" id="${p}C1" value="${d.c1}"></label><label data-show="${p}grad">Endfarbe<input type="color" id="${p}C2" value="${d.c2}"></label></div>
     <div data-show="${p}grad">${rng(p+"Ang","Verlaufswinkel",0,360,1,90,"°")}</div>
     <div data-show="${p}image" style="display:flex;flex-direction:column;gap:8px">
-      <p class="note">Wähle links ein Bild (Suchen, KI erzeugen oder Hochladen). Es wird in diese Flagge eingesetzt.</p>
+      <p class="note">Tipp auf „Bild wählen“ und such dir links ein Bild aus (Suchen, KI erzeugen oder Hochladen). Danach kannst du das Bild in der Vorschau mit dem Finger verschieben und mit zwei Fingern vergrößern.</p>
+      <div class="row"><button class="btn" type="button" data-pick="${n}">Bild wählen</button><button class="btn" type="button" data-fit="${n}">Bild an Rahmen anpassen</button><button class="btn" type="button" data-clear="${n}">Bild entfernen</button></div>
       ${rng(p+"ImgZoom","Bildgröße in der Flagge",0.3,5,0.01,1,"×")}
       <div class="row">${rng(p+"ImgX","Bild links/rechts",-100,100,1,0,"")}${rng(p+"ImgY","Bild hoch/runter",-100,100,1,0,"")}</div>
     </div>
@@ -262,10 +270,26 @@ document.querySelectorAll("[data-flag]").forEach(box=>{
     <div class="row">${rng(p+"X","Links/rechts",-50,50,1,0,"")}${rng(p+"Y","Hoch/runter",-50,50,1,0,"")}</div>`;
 });
 const flagFill = {1:"solid", 2:"solid"};
+function setFill(n, val){ flagFill[n]=val; document.querySelectorAll(`[data-fill="${n}"] button`).forEach(x=>x.setAttribute("aria-selected", x.dataset.v===val)); }
 document.querySelectorAll("[data-fill]").forEach(t=>{
-  t.addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; const n=t.dataset.fill; flagFill[n]=b.dataset.v;
-    t.querySelectorAll("button").forEach(x=>x.setAttribute("aria-selected", x===b)); syncUi(); draw(); });
+  t.addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; const n=+t.dataset.fill; setFill(n,b.dataset.v); select(n); });
 });
+function setRange(id,val){ $(id).value=val; }
+function fitFlagImg(n){ setRange("f"+n+"ImgZoom",1); setRange("f"+n+"ImgX",0); setRange("f"+n+"ImgY",0); }
+document.addEventListener("click", e=>{
+  const pk=e.target.closest("[data-pick]"), ft=e.target.closest("[data-fit]"), cl=e.target.closest("[data-clear]");
+  if (pk){ select(+pk.dataset.pick); document.querySelector('[aria-label="Bildquelle"]').scrollIntoView({behavior:"smooth"}); }
+  if (ft){ fitFlagImg(+ft.dataset.fit); select(+ft.dataset.fit); }
+  if (cl){ const n=+cl.dataset.clear; state.flagImg[n]=null; setFill(n,"solid"); select(n); }
+});
+// Auswahl: ganzes Logo oder eine Flagge
+function select(s){
+  state.sel = s==="all" ? "all" : +s;
+  document.querySelectorAll("#selTabs button").forEach(b=>b.setAttribute("aria-selected", String(b.dataset.sel)===String(state.sel)));
+  if (state.sel!=="all"){ const d=document.querySelector(`[data-flag="${state.sel}"]`).parentElement; d.open=true; }
+  draw();
+}
+$("selTabs").addEventListener("click", e=>{ const b=e.target.closest("button"); if(b) select(b.dataset.sel); });
 
 /* ---------- Tabs ---------- */
 const tabs = [["tab-search","pane-search"],["tab-gen","pane-gen"],["tab-up","pane-up"]];
@@ -275,7 +299,7 @@ function setMode(m){ state.mode=m; document.querySelectorAll("#modeTabs button")
 
 // Wohin kommt ein neu gewähltes Bild?
 function target(){
-  if (state.mode==="logo"){ if(flagFill[1]==="image") return "flag1"; if(flagFill[2]==="image") return "flag2"; }
+  if (state.mode==="logo" && state.sel!=="all") return "flag"+state.sel;
   return "main";
 }
 function syncUi(){
@@ -283,7 +307,7 @@ function syncUi(){
   [1,2].forEach(n=>document.querySelectorAll(`[data-show^="f${n}"]`).forEach(el=>{ el.hidden = el.dataset.show!=="f"+n+flagFill[n]; }));
   const t = target();
   const names = {main:"als eigenes Motiv", flag1:"in die obere Flagge", flag2:"in die untere Flagge"};
-  $("targetInfo").textContent = "Ein hier gewähltes Bild kommt " + names[t] + ".";
+  $("targetInfo").textContent = "Ein hier gewähltes Bild kommt " + names[t] + "." + (state.mode==="logo" && t==="main" ? " Für eine Flagge: rechts oben „Obere/Untere Flagge“ wählen oder in der Vorschau auf die Flagge tippen." : "");
   const has = t==="main" ? state.img : state.flagImg[t==="flag1"?1:2];
   $("aiTargetNote").textContent = has ? "Bearbeitet wird das Bild " + names[t].replace("als eigenes Motiv","im Motiv") + "." : "Wähle zuerst links ein Bild, dann kannst du es hier bearbeiten.";
   document.querySelectorAll("[data-out]").forEach(o=>{ const el=$(o.dataset.out); if(el) o.textContent = (+el.value).toLocaleString("de-DE") + (o.dataset.unit||""); });
@@ -301,13 +325,22 @@ function flagPath(g){ // Flagge in Einheitskoordinaten, Mast bei x=0, Tuch weht 
   g.bezierCurveTo(-0.52,0.18,-0.25,-0.22,0.04,-0.02);
   g.closePath();
 }
-function drawFlag(g, n, L){
+function flagTransform(g, n, L){
   const p="f"+n, s = L*num(p+"Scale")/100;
   const base = n==1 ? {x:0.10,y:0.16} : {x:0.30,y:0.02};
-  g.save();
   g.translate((base.x + num(p+"X")/100)*L, (base.y + num(p+"Y")/100)*L);
   g.rotate(num(p+"Rot")*Math.PI/180);
   g.scale(s, s);
+}
+function logoTransform(g, S){ // gibt den Logo-Radius in Pixeln zurück
+  const {face, cut} = geom(); const pxmm = S/cut, R = S/2;
+  g.translate(R + state.ox*S, R + state.oy*S); g.rotate(num("rot")*Math.PI/180);
+  return (face/2)*pxmm*0.62*num("zoom");
+}
+function drawFlag(g, n, L){
+  const p="f"+n;
+  g.save();
+  flagTransform(g, n, L);
   let fill = v(p+"C1");
   if (flagFill[n]==="grad"){
     const a = num(p+"Ang")*Math.PI/180, dx=Math.cos(a)*0.5, dy=Math.sin(a)*0.5;
@@ -336,13 +369,16 @@ function render(g, S, guides){
   g.beginPath(); g.arc(R,R,R,0,Math.PI*2); g.clip();
   g.fillStyle = v("bgColor"); g.fillRect(0,0,S,S);
   g.save();
-  g.translate(R + state.ox*S, R + state.oy*S); g.rotate(num("rot")*Math.PI/180);
+  const L = logoTransform(g, S);
   if (state.mode==="logo"){
-    const L = (face/2)*pxmm*0.62*num("zoom");
     if (on("lgRing")){ g.beginPath(); g.arc(0,0,L,0,Math.PI*2); g.fillStyle=v("lgFill"); g.fill(); }
     g.save(); g.beginPath(); g.arc(0,0,L*0.96,0,Math.PI*2); g.clip();
     if (on("lgMirror")) g.scale(-1,1);
     drawFlag(g,2,L); drawFlag(g,1,L);
+    if (guides && state.sel!=="all"){ // Auswahl markieren
+      g.save(); flagTransform(g, state.sel, L); g.setLineDash([0.06,0.04]); g.lineWidth=0.025; g.strokeStyle="#2f9bff";
+      g.strokeRect(-0.95,-0.9,1.1,1.75); g.restore();
+    }
     g.restore();
     if (on("lgRing")){ g.beginPath(); g.arc(0,0,L,0,Math.PI*2); g.lineWidth=L*0.07; g.strokeStyle=v("lgLine"); g.stroke(); }
   } else if (state.img){
@@ -402,25 +438,73 @@ $("resetImg").onclick = ()=>{ state.ox=state.oy=0; $("zoom").value=1; $("rot").v
 if (document.fonts){ document.fonts.ready.then(draw); FONTS.forEach(([f])=>document.fonts.load(fontCss(f,40)).then(draw).catch(()=>{})); }
 
 // Ziehen, Mausrad, zwei Finger
-const pts = new Map(); let drag=null, pinch=null;
+const pts = new Map(); let gest=null, pinch=null;
 const locked = () => on("lock");
-$("lock").addEventListener("change", ()=>{ ["zoom","rot","resetImg"].forEach(id=>$(id).disabled=locked()); cv.style.cursor = locked() ? "default" : "grab"; });
-cv.addEventListener("pointerdown", e=>{ if(locked()) return; pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); cv.setPointerCapture(e.pointerId);
-  if (pts.size===1) drag={x:e.clientX,y:e.clientY,ox:state.ox,oy:state.oy};
-  if (pts.size===2){ const [a,b]=[...pts.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y), z:num("zoom")}; drag=null; } });
-cv.addEventListener("pointermove", e=>{ if(!pts.has(e.pointerId)) return; pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
-  const w=cv.getBoundingClientRect().width;
-  if (pinch && pts.size===2){ const [a,b]=[...pts.values()]; $("zoom").value=Math.min(4,Math.max(.2,pinch.z*Math.hypot(a.x-b.x,a.y-b.y)/pinch.d)); draw(); }
-  else if (drag){ state.ox=drag.ox+(e.clientX-drag.x)/w; state.oy=drag.oy+(e.clientY-drag.y)/w; draw(); } });
-const up = e=>{ pts.delete(e.pointerId); if(pts.size<2) pinch=null; if(!pts.size) drag=null; };
-cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
-cv.addEventListener("wheel", e=>{ if(locked()) return; e.preventDefault(); const z=$("zoom"); z.value=Math.min(4,Math.max(.2,+z.value*(e.deltaY<0?1.06:1/1.06))); draw(); }, {passive:false});
+$("lock").addEventListener("change", ()=>{ ["zoom","rot","resetImg"].forEach(id=>$(id).disabled=locked()); });
+const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
+// Worauf wirkt eine Geste gerade?
+function gestureTarget(){
+  if (state.mode==="logo" && state.sel!=="all"){ const n=state.sel; return (flagFill[n]==="image" && state.flagImg[n]) ? {kind:"img",n} : {kind:"flag",n}; }
+  return locked() ? null : {kind:"all"};
+}
+function snap(t){
+  if(!t) return null; const p="f"+t.n;
+  if (t.kind==="all") return {ox:state.ox, oy:state.oy, z:num("zoom")};
+  if (t.kind==="flag") return {x:num(p+"X"), y:num(p+"Y"), z:num(p+"Scale")};
+  return {x:num(p+"ImgX"), y:num(p+"ImgY"), z:num(p+"ImgZoom")};
+}
+// Verschiebung in Vorschau-Pixeln in das Koordinatensystem von Logo bzw. Flagge umrechnen
+function toLocal(dx, dy, t){
+  const L = (geom().face/2)*(cv.width/geom().cut)*0.62*num("zoom");
+  let a = -num("rot")*Math.PI/180, x = dx*Math.cos(a)-dy*Math.sin(a), y = dx*Math.sin(a)+dy*Math.cos(a);
+  if (on("lgMirror")) x = -x;
+  if (t.kind==="flag") return {x: x/L*100, y: y/L*100};
+  const p="f"+t.n, s=L*num(p+"Scale")/100; a = -num(p+"Rot")*Math.PI/180;
+  const lx = (x*Math.cos(a)-y*Math.sin(a))/s, ly = (x*Math.sin(a)+y*Math.cos(a))/s;
+  return {x: lx/0.009, y: ly/0.009};
+}
+function applyMove(t, s0, dx, dy){
+  if (t.kind==="all"){ state.ox=s0.ox+dx/cv.width; state.oy=s0.oy+dy/cv.width; return; }
+  const p="f"+t.n, d=toLocal(dx,dy,t);
+  if (t.kind==="flag"){ setRange(p+"X",clamp(s0.x+d.x,-50,50)); setRange(p+"Y",clamp(s0.y+d.y,-50,50)); }
+  else { setRange(p+"ImgX",clamp(s0.x+d.x,-100,100)); setRange(p+"ImgY",clamp(s0.y+d.y,-100,100)); }
+}
+function applyZoom(t, s0, f){
+  if (t.kind==="all") setRange("zoom",clamp(s0.z*f,.2,4));
+  else if (t.kind==="flag") setRange("f"+t.n+"Scale",clamp(s0.z*f,50,150));
+  else setRange("f"+t.n+"ImgZoom",clamp(s0.z*f,.3,5));
+}
+const hitCv=document.createElement("canvas"), hitG=hitCv.getContext("2d");
+function hitFlag(px, py){
+  if (state.mode!=="logo") return null;
+  hitCv.width=hitCv.height=cv.width; hitG.save(); const L=logoTransform(hitG, cv.width);
+  if (on("lgMirror")) hitG.scale(-1,1);
+  let hit=null;
+  for (const n of [1,2]){ hitG.save(); flagTransform(hitG,n,L); flagPath(hitG); hitG.rect(-0.03,-0.7,0.13,1.54);
+    if (hitG.isPointInPath(px,py)) hit=hit||n; hitG.restore(); }
+  hitG.restore(); return hit;
+}
+function cvPoint(e){ const r=cv.getBoundingClientRect(), k=cv.width/r.width; return {x:(e.clientX-r.left)*k, y:(e.clientY-r.top)*k, k}; }
+cv.addEventListener("pointerdown", e=>{ pts.set(e.pointerId,cvPoint(e)); cv.setPointerCapture(e.pointerId);
+  const t=gestureTarget();
+  if (pts.size===1) gest={start:cvPoint(e), t, s0:snap(t), moved:false};
+  if (pts.size===2 && gest){ const [a,b]=[...pts.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y), s0:snap(gest.t)}; gest.moved=true; } });
+cv.addEventListener("pointermove", e=>{ if(!pts.has(e.pointerId)||!gest) return; const pt=cvPoint(e); pts.set(e.pointerId,pt);
+  if (pinch && pts.size===2){ if(gest.t){ const [a,b]=[...pts.values()]; applyZoom(gest.t, pinch.s0, Math.hypot(a.x-b.x,a.y-b.y)/pinch.d); draw(); } return; }
+  const dx=pt.x-gest.start.x, dy=pt.y-gest.start.y;
+  if (Math.hypot(dx,dy) > 6*pt.k) gest.moved=true;
+  if (gest.moved && gest.t){ applyMove(gest.t, gest.s0, dx, dy); draw(); } });
+const up = e=>{
+  if (gest && !gest.moved && pts.size===1 && state.mode==="logo"){ const pt=cvPoint(e); const n=hitFlag(pt.x,pt.y); select(n||"all"); }
+  pts.delete(e.pointerId); if(pts.size<2) pinch=null; if(!pts.size) gest=null; };
+cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", e=>{ pts.delete(e.pointerId); pinch=null; if(!pts.size) gest=null; });
+cv.addEventListener("wheel", e=>{ const t=gestureTarget(); if(!t) return; e.preventDefault(); applyZoom(t, snap(t), e.deltaY<0?1.06:1/1.06); draw(); }, {passive:false});
 
 /* ---------- Bild laden ---------- */
 function useImage(im, credit){
   const t = target();
   if (t==="main"){ state.img=im; state.credit=credit||""; if(state.mode!=="image"){ setMode("image"); } if(!locked()){ state.ox=state.oy=0; $("zoom").value=1; $("rot").value=0; } }
-  else state.flagImg[t==="flag1"?1:2]=im;
+  else { const n=t==="flag1"?1:2; state.flagImg[n]=im; setFill(n,"image"); fitFlagImg(n); }
   $("credit").innerHTML = credit||"";
   draw();
 }
