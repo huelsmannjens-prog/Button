@@ -304,7 +304,19 @@
     </div>
 
   <div class="sp-col sp-right">
-    <div class="card p-5 space-y-3">
+    <div class="card p-5">
+    <section class="space-y-3">
+      <h2 class="sec">Alle Texte (Voreinstellung)</h2>
+      <p class="text-[11px] text-slate-500">Gilt für alle drei Textfelder. Danach kannst du jedes Feld unter „Bearbeiten“ einzeln ändern – tippe dazu im Button auf den Text.</p>
+      <div><div class="flex justify-between"><span class="lbl">Schriftgröße</span><span class="val" data-out="allSize"></span></div><input data-k="allSize" type="range" min="6" max="60" step="0.1"></div>
+      <div data-style="g"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><div class="flex justify-between"><span class="lbl">Buchstabenabstand oben</span><span class="val" data-out="topSpacing"></span></div><input data-k="topSpacing" type="range" min="-2" max="15" step="0.5"></div>
+        <div><div class="flex justify-between"><span class="lbl">Buchstabenabstand unten</span><span class="val" data-out="bottomSpacing"></span></div><input data-k="bottomSpacing" type="range" min="-2" max="15" step="0.5"></div>
+      </div>
+    </section>
+    </div>
+    <div class="card p-5 space-y-3" id="editCard">
       <h2 class="sec">Bearbeiten</h2>
       <!-- Kontext-Bearbeitung -->
       <div id="ctx" class="w-full mt-3">
@@ -391,17 +403,6 @@
           <div data-show="bottomMode==own"><div data-style="bottom"></div></div>
         </div>
       </div>
-    </div>
-    <div class="card p-5">
-    <section class="space-y-3">
-      <h2 class="sec">4. Textgestaltung für alle Texte</h2>
-      <p class="text-[11px] text-slate-500">Gilt für jedes Textfeld, das auf „Wie alle Texte“ steht. Einzelne Felder kannst du im Editor eigen gestalten.</p>
-      <div data-style="g"></div>
-      <div class="grid grid-cols-2 gap-3">
-        <div><div class="flex justify-between"><span class="lbl">Buchstabenabstand oben</span><span class="val" data-out="topSpacing"></span></div><input data-k="topSpacing" type="range" min="-2" max="15" step="0.5"></div>
-        <div><div class="flex justify-between"><span class="lbl">Buchstabenabstand unten</span><span class="val" data-out="bottomSpacing"></span></div><input data-k="bottomSpacing" type="range" min="-2" max="15" step="0.5"></div>
-      </div>
-    </section>
     </div>
   </div>
 </main>
@@ -659,7 +660,7 @@ const DEFAULTS = {
   count: 35, printCutLine: true,
   view: "edit",
   topMode: "own", middleMode: "own", bottomMode: "own", topInit: true, middleInit: true, bottomInit: true,
-  projId: "", projName: "",
+  projId: "", projName: "", allSize: 16.6,
   topBinary: false, middleBinary: false, bottomBinary: false,
   imageLocked: false, topLocked: false, middleLocked: false, bottomLocked: false,
   sheetItems: []
@@ -684,6 +685,11 @@ function upgradeKeys(d) {
 }
 function sty(w) { const p = state[w + "Mode"] === "own" ? w : "g"; const o = {}; STYLE_KEYS.forEach(k => o[k] = state[p + k]); return o; }
 
+// „Alle Texte“: eine Änderung gilt sofort für alle drei Textfelder (danach einzeln änderbar)
+function propagateAll(k) {
+  if (k === "allSize") { ["top", "middle", "bottom"].forEach(w => { state[w + "Size"] = state.allSize; state[w + "Auto"] = false; }); return; }
+  if (k[0] === "g" && STYLE_KEYS.includes(k.slice(1))) ["top", "middle", "bottom"].forEach(w => state[w + k.slice(1)] = state[k]);
+}
 // Bedienfeld für eine Gestaltung erzeugen
 function styleEditor(p) {
   const col = (k, label) => `<div><label class="lbl">${label}</label><input data-k="${p}${k}" type="color" class="clr"><div class="swrow">${SWATCHES.map(c => `<button type="button" class="sw" style="background:${c}" data-sw="${p}${k}" data-c="${c}" title="${c}"></button>`).join("")}</div></div>`;
@@ -1149,7 +1155,7 @@ function render() {
   $("#pickBtn").textContent = state.img ? "Bild ersetzen …" : "Bild auswählen …";
   $$("[data-out]").forEach(el => {
     const k = el.dataset.out, v = state[k];
-    if (/^(top|middle|bottom)Size$/.test(k)) { el.textContent = uToPt(v).toFixed(1).replace(".", ",") + " pt"; return; }
+    if (/^(top|middle|bottom|all)Size$/.test(k)) { el.textContent = uToPt(v).toFixed(1).replace(".", ",") + " pt"; return; }
     el.textContent = (k === "imgScale" ? Number(v).toFixed(2) : (typeof v === "number" ? Math.round(v * 10) / 10 : v)) + (el.dataset.unit || "");
   });
   updateFontPickers();
@@ -1197,9 +1203,11 @@ function bindInputs() {
       // Schriftgröße von Hand geändert -> Automatik aus
       if (/^(top|middle|bottom)Size$/.test(k)) state[k.replace("Size", "Auto")] = false;
       if (k === "middleAuto" && el.checked) state.middleW = Math.max(60, midGeomManualWidth());
+      propagateAll(k);
       if (before) {   // Schrift im gleichen Verhältnis zur Buttongröße mitskalieren
         const a = dims(), f = before.cut * a.finish / (before.finish * a.cut);
         ["top", "middle", "bottom"].forEach(w => { if (!state[w + "Auto"]) state[w + "Size"] = Math.round(state[w + "Size"] * f * 10) / 10; });
+        state.allSize = Math.round(state.allSize * f * 10) / 10;
         clampCount();
       }
       render();
@@ -1208,11 +1216,11 @@ function bindInputs() {
   $$("[data-seg]").forEach(seg => $$("button", seg).forEach(b => b.addEventListener("click", () => {
     const k = seg.dataset.seg, m = k.match(/^(top|middle|bottom)Mode$/);
     if (m && b.dataset.v === "own" && !state[m[1] + "Init"]) { STYLE_KEYS.forEach(sk => state[m[1] + sk] = state["g" + sk]); state[m[1] + "Init"] = true; }
-    state[k] = b.dataset.v; render();
+    state[k] = b.dataset.v; propagateAll(k); render();
   })));
   document.addEventListener("click", e => {
     const b = e.target.closest && e.target.closest("[data-sw]"); if (!b) return;
-    state[b.dataset.sw] = b.dataset.c; render();
+    state[b.dataset.sw] = b.dataset.c; propagateAll(b.dataset.sw); render();
   });
   $$("#selBar button").forEach(b => b.addEventListener("click", () => select(b.dataset.sel === sel ? null : b.dataset.sel)));
 }
@@ -1223,9 +1231,14 @@ function midGeomManualWidth() {
 
 function select(what, focus) {
   sel = what; render();
-  if (focus) {
+  if (focus) {   // zur passenden Textzeile springen (unter der angehefteten Vorschau sichtbar)
     const el = $(`[data-ctx=${what}] [data-k$=Text]`);
-    if (el) setTimeout(() => { el.focus({ preventScroll: false }); }, 50);
+    if (el) setTimeout(() => {
+      const st = $(".sp-stage").getBoundingClientRect(), mobile = matchMedia("(max-width:699px)").matches;
+      const r = el.getBoundingClientRect(), top = mobile ? (parseFloat(getComputedStyle($(".sp-stage")).top) || 56) + st.height + 12 : 90;
+      if (r.top < top || r.bottom > innerHeight - 20) window.scrollBy({ top: r.top - top, behavior: "smooth" });
+      el.focus({ preventScroll: true }); const n = el.value.length; try { el.setSelectionRange(n, n); } catch (e) {}
+    }, 60);
   }
 }
 function centerText(w) {
@@ -1375,7 +1388,7 @@ function endPointer(e) {
   if (pinch) { if (touches.size < 2) { pinch = null; op = null; } return; }
   if (e.type === "pointerup" && op && !op.active && op.what) {
     if (op.what === "image" && !state.img) openPicker();
-    else if (op.what !== "image" && !state[op.what + "Text"].trim()) select(op.what, true);
+    else if (op.what !== "image") select(op.what, true);
   }
   op = null;
 }
