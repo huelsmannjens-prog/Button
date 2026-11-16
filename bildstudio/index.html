@@ -152,7 +152,7 @@ details.sub-box>div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
         <label>Button-Ø mm<input type="number" id="faceMm" step="0.5" value="25"></label>
         <label>Zuschnitt-Ø mm<input type="number" id="cutMm" step="0.5" value="37"></label>
       </div>
-      <label>Hintergrundfarbe<input type="color" id="bgColor" value="#ffffff"></label>
+      <label>Hintergrundfarbe<input type="color" id="bgColor" value="#000000"></label>
     </fieldset>
 
     <fieldset><legend>Motiv</legend>
@@ -160,6 +160,7 @@ details.sub-box>div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
         <button role="tab" data-mode="logo" aria-selected="true">Logo (2 Flaggen)</button>
         <button role="tab" data-mode="image" aria-selected="false">Eigenes Bild</button>
       </div>
+      <label class="check"><input type="checkbox" id="lock"> 🔒 Motiv fixieren (nicht mehr verschieben, zoomen oder drehen)</label>
       <label>Größe <input type="range" id="zoom" min="0.2" max="4" step="0.01" value="1"></label>
       <label>Drehen <input type="range" id="rot" min="-180" max="180" step="1" value="0"></label>
 
@@ -200,8 +201,8 @@ details.sub-box>div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
 
     <fieldset><legend>Texte</legend>
       <div class="row">
-        <label>Textfarbe<input type="color" id="tColor" value="#000000"></label>
-        <label>Kontur<input type="color" id="tStroke" value="#ffffff"></label>
+        <label>Textfarbe<input type="color" id="tColor" value="#ffffff"></label>
+        <label>Kontur<input type="color" id="tStroke" value="#000000"></label>
         <label>Konturbreite<input type="range" id="tStrokeW" min="0" max="3" step="0.1" value="0"></label>
       </div>
       <details class="sub-box" open><summary>Oben (im Bogen)</summary><div data-text="top"></div></details>
@@ -252,8 +253,11 @@ document.querySelectorAll("[data-flag]").forEach(box=>{
     <div data-show="${p}grad">${rng(p+"Ang","Verlaufswinkel",0,360,1,90,"°")}</div>
     <div data-show="${p}image" style="display:flex;flex-direction:column;gap:8px">
       <p class="note">Wähle links ein Bild (Suchen, KI erzeugen oder Hochladen). Es wird in diese Flagge eingesetzt.</p>
-      ${rng(p+"ImgZoom","Bildgröße in der Flagge",0.5,4,0.01,1,"×")}
+      ${rng(p+"ImgZoom","Bildgröße in der Flagge",0.3,5,0.01,1,"×")}
+      <div class="row">${rng(p+"ImgX","Bild links/rechts",-100,100,1,0,"")}${rng(p+"ImgY","Bild hoch/runter",-100,100,1,0,"")}</div>
     </div>
+    <div class="row"><label>Stiel<input type="color" id="${p}Pole" value="#000000"></label><label>Rahmen<input type="color" id="${p}Frame" value="#ffffff"></label></div>
+    <div class="row"><label class="check"><input type="checkbox" id="${p}FrameOn" checked> Rahmen um Flagge und Stiel</label>${rng(p+"FrameW","Rahmenbreite",0,10,0.5,3,"")}</div>
     <div class="row">${rng(p+"Rot","Neigung",-45,45,1,d.rot,"°")}${rng(p+"Scale","Größe",50,150,1,100," %")}</div>
     <div class="row">${rng(p+"X","Links/rechts",-50,50,1,0,"")}${rng(p+"Y","Hoch/runter",-50,50,1,0,"")}</div>`;
 });
@@ -309,13 +313,18 @@ function drawFlag(g, n, L){
     const a = num(p+"Ang")*Math.PI/180, dx=Math.cos(a)*0.5, dy=Math.sin(a)*0.5;
     const gr = g.createLinearGradient(-0.42-dx,-0.32-dy,-0.42+dx,-0.32+dy); gr.addColorStop(0,v(p+"C1")); gr.addColorStop(1,v(p+"C2")); fill = gr;
   }
-  g.fillStyle = v(p+"C1"); g.fillRect(0,-0.66,0.07,1.46);            // Mast
+  if (on(p+"FrameOn") && num(p+"FrameW")>0){                          // Rahmen um Tuch und Stiel
+    g.save(); g.strokeStyle = v(p+"Frame"); g.lineJoin = "round"; g.lineWidth = num(p+"FrameW")*0.02;
+    g.strokeRect(0,-0.66,0.07,1.46); flagPath(g); g.stroke(); g.restore();
+  }
+  g.fillStyle = v(p+"Pole"); g.fillRect(0,-0.66,0.07,1.46);           // Stiel
   flagPath(g); g.fillStyle = fill; g.fill();
   const im = state.flagImg[n];
   if (flagFill[n]==="image" && im){
     g.save(); flagPath(g); g.clip();
     const w=0.92, h=1.0, k = Math.max(w/im.width, h/im.height)*num(p+"ImgZoom");
-    g.drawImage(im, -0.42 - im.width*k/2, -0.32 - im.height*k/2, im.width*k, im.height*k);
+    const cx = -0.42 + num(p+"ImgX")/100*0.9, cy = -0.32 + num(p+"ImgY")/100*0.9;
+    g.drawImage(im, cx - im.width*k/2, cy - im.height*k/2, im.width*k, im.height*k);
     g.restore();
   }
   g.restore();
@@ -394,7 +403,9 @@ if (document.fonts){ document.fonts.ready.then(draw); FONTS.forEach(([f])=>docum
 
 // Ziehen, Mausrad, zwei Finger
 const pts = new Map(); let drag=null, pinch=null;
-cv.addEventListener("pointerdown", e=>{ pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); cv.setPointerCapture(e.pointerId);
+const locked = () => on("lock");
+$("lock").addEventListener("change", ()=>{ ["zoom","rot","resetImg"].forEach(id=>$(id).disabled=locked()); cv.style.cursor = locked() ? "default" : "grab"; });
+cv.addEventListener("pointerdown", e=>{ if(locked()) return; pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); cv.setPointerCapture(e.pointerId);
   if (pts.size===1) drag={x:e.clientX,y:e.clientY,ox:state.ox,oy:state.oy};
   if (pts.size===2){ const [a,b]=[...pts.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y), z:num("zoom")}; drag=null; } });
 cv.addEventListener("pointermove", e=>{ if(!pts.has(e.pointerId)) return; pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
@@ -403,12 +414,12 @@ cv.addEventListener("pointermove", e=>{ if(!pts.has(e.pointerId)) return; pts.se
   else if (drag){ state.ox=drag.ox+(e.clientX-drag.x)/w; state.oy=drag.oy+(e.clientY-drag.y)/w; draw(); } });
 const up = e=>{ pts.delete(e.pointerId); if(pts.size<2) pinch=null; if(!pts.size) drag=null; };
 cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
-cv.addEventListener("wheel", e=>{ e.preventDefault(); const z=$("zoom"); z.value=Math.min(4,Math.max(.2,+z.value*(e.deltaY<0?1.06:1/1.06))); draw(); }, {passive:false});
+cv.addEventListener("wheel", e=>{ if(locked()) return; e.preventDefault(); const z=$("zoom"); z.value=Math.min(4,Math.max(.2,+z.value*(e.deltaY<0?1.06:1/1.06))); draw(); }, {passive:false});
 
 /* ---------- Bild laden ---------- */
 function useImage(im, credit){
   const t = target();
-  if (t==="main"){ state.img=im; state.credit=credit||""; if(state.mode!=="image"){ setMode("image"); } state.ox=state.oy=0; $("zoom").value=1; $("rot").value=0; }
+  if (t==="main"){ state.img=im; state.credit=credit||""; if(state.mode!=="image"){ setMode("image"); } if(!locked()){ state.ox=state.oy=0; $("zoom").value=1; $("rot").value=0; } }
   else state.flagImg[t==="flag1"?1:2]=im;
   $("credit").innerHTML = credit||"";
   draw();
