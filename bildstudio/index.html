@@ -222,8 +222,6 @@ details.sub-box>div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
     <section class="panel edit" aria-label="Texte"><fieldset><legend>Texte</legend>
       <div class="row">
         <label>Textfarbe<input type="color" id="tColor" value="#ffffff"></label>
-        <label>Kontur<input type="color" id="tStroke" value="#000000"></label>
-        <label>Konturbreite<input type="range" id="tStrokeW" min="0" max="3" step="0.1" value="0"></label>
       </div>
       <details class="sub-box" open><summary>Oben (im Bogen)</summary><div data-text="top"></div></details>
       <details class="sub-box"><summary>Mitte</summary><div data-text="mid"></div></details>
@@ -262,6 +260,8 @@ document.querySelectorAll("[data-text]").forEach(box=>{
        + `<div class="row">${rng(k+"Size","Schriftgröße",3,28,0.1,d.size," pt")}${rng(k+"Track","Laufweite",-10,80,1,d.track," %")}</div>`
        + `<div class="row">${rng(k+"Span","Bogenlänge",20,330,1,d.span,"°")}${rng(k+"Inset","Abstand zum Rand",0,8,0.1,d.inset," mm")}</div>`;
   }
+  h += `<div class="row"><label class="check"><input type="checkbox" id="${k}StrokeOn" checked> Textrahmen</label><label>Rahmenfarbe<input type="color" id="${k}Stroke" value="#000000"></label></div>`
+     + rng(k+"StrokeW","Rahmenbreite",0.1,6,0.1,1," pt");
   box.innerHTML = h;
 });
 const FLAG_DEF = {1:{c1:"#e30613",c2:"#ff6a00",rot:-6,x:0,y:0}, 2:{c1:"#111111",c2:"#555555",rot:14,x:0,y:0}};
@@ -402,10 +402,12 @@ function render(g, S, guides){
   }
   g.restore();
   // Texte
-  g.fillStyle = v("tColor"); g.strokeStyle = v("tStroke"); g.lineJoin = "round"; g.textBaseline = "middle"; g.textAlign = "center";
-  const sw = num("tStrokeW") * pxmm * 0.3;
-  arcField(g, "top", R, pxmm, face, sw, true);
-  arcField(g, "bottom", R, pxmm, face, sw, false);
+  g.fillStyle = v("tColor"); g.lineJoin = "round"; g.textBaseline = "middle"; g.textAlign = "center";
+  // Textrahmen je Feld: Breite in pt, Strich doppelt so breit, weil die Füllung die innere Hälfte verdeckt
+  const swOf = k => { g.strokeStyle = v(k+"Stroke"); return on(k+"StrokeOn") ? num(k+"StrokeW")/PT_PER_MM*pxmm : 0; };
+  arcField(g, "top", R, pxmm, face, swOf("top"), true);
+  arcField(g, "bottom", R, pxmm, face, swOf("bottom"), false);
+  const sw = swOf("mid");
   const mt = v("midText");
   if (mt){
     const px = num("midSize")/PT_PER_MM*pxmm; g.font = fontCss(v("midFont"), px);
