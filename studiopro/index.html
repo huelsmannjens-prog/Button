@@ -1,0 +1,2126 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#0f172a">
+<meta name="mobile-web-app-capable" content="yes">
+<title>DIY-Button-StudioPro 1.6.1</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Fredoka:wght@500;700&family=Pacifico&family=Permanent+Marker&family=Roboto+Slab:wght@700&family=Saira+Stencil+One&family=Big+Shoulders+Stencil+Display:wght@800&family=Anton&family=Lobster&family=Bangers&family=Orbitron:wght@700;900&family=Caveat:wght@700&family=VT323&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  #print-area { display: none; }
+  @media print {
+    html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
+    .no-print { display: none !important; }
+    #print-area { display: block !important; }
+    #print-area svg { display: block; width: 210mm; height: 297mm; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  }
+  .hidden { display: none !important; }
+  .hbtn { background:#1e293b; border:1px solid #334155; color:#c7d2fe; padding:.5rem .7rem; border-radius:.6rem; }
+  .hbtn:hover { background:#334155; }
+  #previewSvg { width: min(88vw, 26rem); height: auto; aspect-ratio: 1 / 1; }
+  @media (min-width: 1280px) { #previewSvg { width: 30rem; } }
+  .ubtn { width:2.1rem; height:2.1rem; border-radius:.5rem; background:#f1f5f9; color:#334155; font-size:1rem; }
+  .ubtn:disabled { opacity:.35; }
+  .only-touch { display:none; }
+  @media (pointer: coarse) {
+    .only-touch { display:block; }
+    .only-mouse { display:none !important; }
+    input[type=range] { height: 2rem; }
+    .inp, select.inp, textarea.inp { font-size: 16px; padding: .6rem .65rem; }
+    .chip { padding: .55rem .75rem; font-size: .8rem; }
+    .sw { width: 1.75rem; height: 1.75rem; }
+    .seg button { padding: .55rem 0; }
+    #selBar button { padding-top: .7rem; padding-bottom: .7rem; }
+  }
+  #toast { bottom: max(1rem, env(safe-area-inset-bottom)); }
+  .seg button { padding: .35rem 0; border-radius: .4rem; }
+  .seg button.on { background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.12); color: #0f172a; font-weight: 600; }
+  #previewSvg { touch-action: none; user-select: none; -webkit-user-select: none; }
+  #previewSvg [data-hit] { cursor: move; }
+  #previewSvg [data-hit=image].empty { cursor: pointer; }
+  #previewSvg [data-h] { cursor: pointer; }
+  #previewSvg .zone { transition: fill .15s; }
+  #previewSvg .zone:not([data-hit=image]):hover { fill: rgba(99,102,241,.08); }
+  #dropZone.over { background: #eef2ff; border-color: #6366f1; }
+  #pasteZone:empty::before { content: attr(data-ph); color:#94a3b8; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  .lbl { display:block; font-size: .72rem; font-weight: 600; color: #475569; margin-bottom: .25rem; }
+  .inp { width:100%; border:1px solid #cbd5e1; border-radius:.5rem; padding:.45rem .55rem; font-size:.9rem; background:#fff; }
+  .clr { width:100%; height:2.2rem; border:1px solid #cbd5e1; border-radius:.5rem; padding:2px; background:#fff; cursor:pointer; }
+  input[type=range] { width:100%; accent-color:#4f46e5; }
+  .val { font-family: ui-monospace, monospace; font-size: .7rem; color: #64748b; }
+  h2.sec { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #94a3b8; }
+  .box { background:#f8fafc; border:1px solid #e2e8f0; border-radius:.75rem; padding:.75rem; }
+  .chip { border:1px solid #c7d2fe; background:#eef2ff; color:#4338ca; border-radius:.5rem; padding:.35rem .6rem; font-size:.75rem; font-weight:600; }
+  .chip:hover { background:#e0e7ff; }
+  .chip.red { border-color:#fecdd3; background:#fff1f2; color:#be123c; }
+  .sw { width:1.35rem; height:1.35rem; border-radius:999px; border:1px solid rgba(15,23,42,.18); cursor:pointer; }
+  .sw:hover { transform: scale(1.12); }
+  .swrow { display:flex; flex-wrap:wrap; gap:.3rem; margin-top:.35rem; }
+  .stylebox { border:1px solid #e2e8f0; background:#fff; border-radius:.6rem; padding:.6rem; }
+  .stylebox h4 { font-size:.7rem; font-weight:700; color:#334155; margin-bottom:.35rem; }
+  .flash { animation: flash 1.2s ease; }
+  @keyframes flash { 0%,60% { box-shadow: 0 0 0 3px #818cf8; } 100% { box-shadow: 0 0 0 0 transparent; } }
+  .fp-btn { width:100%; display:flex; justify-content:space-between; align-items:center; gap:.4rem; border:1px solid #cbd5e1; border-radius:.5rem; padding:.35rem .55rem; background:#fff; font-size:1rem; font-weight:700; text-align:left; }
+  .fp-list { position:absolute; z-index:40; right:0; top:calc(100% + 4px); background:#fff; border:1px solid #cbd5e1; border-radius:.75rem; box-shadow:0 12px 30px rgba(15,23,42,.18); max-height:22rem; overflow-y:auto; padding:.25rem; min-width:15rem; }
+  .fp-opt { display:block; width:100%; text-align:left; padding:.45rem .6rem; border-radius:.5rem; background:#fff; border:0; }
+  .fp-opt:hover, .fp-opt.on { background:#eef2ff; }
+  .fp-opt .s { display:block; font-size:1.15rem; font-weight:700; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .fp-opt .n { display:block; font-size:.65rem; color:#64748b; font-family: Arial, sans-serif; }
+</style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+<header class="no-print bg-slate-900 text-white shadow py-2.5 px-3 md:px-6 flex gap-3 justify-between items-center sticky top-0 z-50" style="padding-top:max(.625rem, env(safe-area-inset-top))">
+  <h1 class="text-base sm:text-lg font-bold flex items-center gap-2 shrink-0">
+    <span class="inline-block w-6 h-6 rounded-full bg-gradient-to-br from-indigo-400 to-pink-500"></span>
+    <span class="hidden sm:inline">DIY-Button-StudioPro</span><span class="sm:hidden">Buttons</span>
+    <span class="text-xs font-medium bg-indigo-500/30 text-indigo-200 px-2 py-0.5 rounded-full">1.6.1</span>
+  </h1>
+  <div class="flex gap-1.5 sm:gap-2 text-sm overflow-x-auto whitespace-nowrap">
+    <button onclick="openGen()" title="Automatischer Button" class="hbtn !bg-pink-600 hover:!bg-pink-500 !text-white font-semibold">✨ Auto</button>
+    <button onclick="saveProject()" title="Projekt speichern (Strg+S)" class="hbtn">💾<span class="hidden md:inline"> Speichern</span></button>
+    <label title="Projekt laden" class="hbtn cursor-pointer">📂<span class="hidden md:inline"> Laden</span>
+      <input type="file" id="loadProjectInput" accept=".json,application/json" class="hidden">
+    </label>
+    <button onclick="resetAll()" title="Neues Design" class="hbtn">✚<span class="hidden md:inline"> Neu</span></button>
+    <button onclick="doPrint()" title="Drucken / PDF (Strg+P)" class="hbtn !bg-indigo-600 hover:!bg-indigo-500 font-semibold">🖨 PDF<span class="hidden md:inline"> drucken</span></button>
+  </div>
+</header>
+
+<button onclick="openGen()" class="no-print lg:hidden fixed right-4 z-40 bg-pink-600 text-white font-semibold text-sm px-4 py-3 rounded-full shadow-xl" style="bottom:max(1rem, env(safe-area-inset-bottom))">✨ Automatischer Button</button>
+<div id="toast" class="no-print hidden fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm px-4 py-2 rounded-xl shadow-lg z-50"></div>
+<input id="imageUpload" type="file" accept="image/*" style="position:fixed;left:-100px;top:0;width:1px;height:1px;opacity:0">
+
+<main class="no-print flex-1 max-w-7xl w-full mx-auto p-3 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+  <!-- ============ EDITOR / VORSCHAU (auf dem Handy oben) ============ -->
+  <div class="lg:col-span-7 lg:order-2 flex flex-col gap-5 lg:overflow-y-auto lg:max-h-[calc(100vh-84px)] lg:pr-1">
+    <div class="card p-4 sm:p-5 flex flex-col items-center">
+      <div class="w-full flex flex-wrap gap-2 justify-between items-center">
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-bold text-slate-700">Editor</span>
+          <button id="undoBtn" class="ubtn" title="Rückgängig (Strg+Z)" onclick="undo()">↶</button>
+          <button id="redoBtn" class="ubtn" title="Wiederholen (Strg+Y)" onclick="redo()">↷</button>
+          <button onclick="openGen()" class="ml-1 px-3 h-[2.1rem] rounded-lg bg-pink-600 hover:bg-pink-500 text-white text-xs font-semibold">✨ Auto-Button</button>
+        </div>
+        <div class="seg grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-lg text-xs text-slate-600 w-60" data-seg="view">
+          <button data-v="edit">Mit Hilfslinien</button><button data-v="finished">Fertiger Button</button>
+        </div>
+      </div>
+      <div class="py-4">
+        <svg id="previewSvg" viewBox="0 0 300 300" style="filter: drop-shadow(0 10px 18px rgba(15,23,42,.18))"></svg>
+      </div>
+
+      <!-- Auswahlleiste -->
+      <div class="w-full flex gap-1 p-1 bg-slate-100 rounded-xl text-xs font-semibold text-slate-600" id="selBar">
+        <button data-sel="image" class="flex-1 py-2 rounded-lg">🖼 Bild</button>
+        <button data-sel="top" class="flex-1 py-2 rounded-lg">⌒ Oben</button>
+        <button data-sel="middle" class="flex-1 py-2 rounded-lg">T Mitte</button>
+        <button data-sel="bottom" class="flex-1 py-2 rounded-lg">⌣ Unten</button>
+      </div>
+
+      <!-- Kontext-Bearbeitung -->
+      <div id="ctx" class="w-full mt-3">
+        <div data-ctx="none" class="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-xl p-3 leading-relaxed">
+          Tippe im Button auf <b>Bild</b> oder ein <b>Textfeld</b>, um es auszuwählen.<br>
+          🔒 Gesperrte Elemente lassen sich nicht verschieben – auswählen über die Leiste oben, dort entsperren.<br>
+          <b>Ziehen</b> = verschieben · <b>■ Eckgriff</b> = Größe · <b>● runder Griff</b> = drehen · bei Bogentexten: <b>◆ Endgriffe</b> = Feldbreite.
+          <span class="only-touch mt-1">📱 <b>Zwei Finger</b> auf dem Button: auswähltes Element zoomen und drehen.</span>
+          <span class="only-mouse block mt-1">⌨ <b>Pfeiltasten</b> = verschieben (mit Umschalt ×10) · <b>Mausrad</b> = Größe · <b>Umschalt+Mausrad</b> = drehen · <b>Entf</b> = Inhalt löschen · <b>Strg+Z / Strg+Y</b> = rückgängig/wiederholen · <b>Esc</b> = Auswahl aufheben · <b>Strg+V</b> = Bild einfügen</span>
+        </div>
+
+        <div data-ctx="image" class="box space-y-3 hidden">
+          <div class="flex flex-wrap gap-2">
+            <button class="chip" onclick="openPicker()" id="pickBtn">Bild auswählen …</button>
+            <button class="chip" onclick="rotateImg(-90)">⟲ 90°</button>
+            <button class="chip" onclick="rotateImg(90)">⟳ 90°</button>
+            <label class="chip flex items-center gap-1.5 cursor-pointer"><input data-k="imageLocked" type="checkbox" class="accent-indigo-600 w-4 h-4"> 🔒 Bild sperren</label>
+            <button class="chip" onclick="openImgEdit()">✏️ Bild bearbeiten</button>
+            <button class="chip" onclick="coverImage()">Bis Biegekante füllen</button>
+            <button class="chip" onclick="resetImage()">Zurücksetzen</button>
+            <button class="chip red" onclick="removeImage()">Entfernen</button>
+          </div>
+          <div id="pasteZone" contenteditable="true" class="w-full text-center text-xs text-slate-500 border border-dashed border-slate-300 rounded-lg py-2 px-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400" data-ph="Oder: Bild kopieren, hier tippen und „Einfügen“ wählen (am PC: Strg+V)"></div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><div class="flex justify-between"><span class="lbl">Größe</span><span class="val" data-out="imgScale" data-unit="x"></span></div><input data-k="imgScale" type="range" min="0.05" max="10" step="0.01"></div>
+            <div><div class="flex justify-between"><span class="lbl">Drehung</span><span class="val" data-out="imgRotate" data-unit="°"></span></div><input data-k="imgRotate" type="range" min="-180" max="180"></div>
+            <div><span class="lbl">Einpassen</span><select data-k="imgFit" class="inp"><option value="slice">Fläche füllen</option><option value="meet">Ganz zeigen</option></select></div>
+            <div><div class="flex justify-between"><span class="lbl">Deckkraft</span><span class="val" data-out="imgOpacity" data-unit="%"></span></div><input data-k="imgOpacity" type="range" min="10" max="100"></div>
+          </div>
+        </div>
+
+        <div data-ctx="top" class="box space-y-3 hidden">
+          <textarea data-k="topText" rows="2" placeholder="Bogentext oben … (Enter = weitere Zeile)" class="inp resize-none"></textarea>
+          <div class="grid grid-cols-2 gap-3">
+            <div><span class="lbl">Schriftart</span><div class="fontPick relative" data-fk="topFont" data-tk="topText"></div></div>
+            <div><div class="flex justify-between"><span class="lbl">Schriftgröße</span><span class="val" data-out="topSize"></span></div><input data-k="topSize" type="range" min="6" max="60" step="0.5"></div>
+          </div>
+          <div class="flex flex-wrap gap-3 items-center">
+            <label class="flex items-center gap-1.5 text-xs text-slate-700"><input data-k="topAuto" type="checkbox" class="accent-indigo-600 w-4 h-4"> Größe automatisch ans Feld anpassen</label>
+            <label class="flex items-center gap-1.5 text-xs text-slate-700"><input data-k="topBinary" type="checkbox" class="accent-indigo-600 w-4 h-4"> Als Binärcode (0/1)</label>
+            <button class="chip" onclick="centerText('top')">Zentrieren</button>
+            <label class="chip flex items-center gap-1.5 cursor-pointer"><input data-k="topLocked" type="checkbox" class="accent-indigo-600 w-4 h-4"> 🔒 Textfeld sperren</label>
+          </div>
+          <div class="seg grid grid-cols-2 gap-1 p-1 bg-slate-200/70 rounded-lg text-xs text-slate-600" data-seg="topMode">
+            <button data-v="auto">Wie alle Texte</button><button data-v="own">Eigene Gestaltung</button>
+          </div>
+          <div data-show="topMode==own"><div data-style="top"></div></div>
+        </div>
+
+        <div data-ctx="middle" class="box space-y-3 hidden">
+          <textarea data-k="middleText" rows="2" placeholder="Text in der Mitte … (Enter = neue Zeile)" class="inp resize-none"></textarea>
+          <div class="grid grid-cols-2 gap-3">
+            <div><span class="lbl">Schriftart</span><div class="fontPick relative" data-fk="middleFont" data-tk="middleText"></div></div>
+            <div><div class="flex justify-between"><span class="lbl">Schriftgröße</span><span class="val" data-out="middleSize"></span></div><input data-k="middleSize" type="range" min="6" max="220" step="0.5"></div>
+          </div>
+          <div class="flex flex-wrap gap-3 items-center">
+            <label class="flex items-center gap-1.5 text-xs text-slate-700"><input data-k="middleAuto" type="checkbox" class="accent-indigo-600 w-4 h-4"> Größe automatisch ans Feld anpassen</label>
+            <label class="flex items-center gap-1.5 text-xs text-slate-700"><input data-k="middleBinary" type="checkbox" class="accent-indigo-600 w-4 h-4"> Als Binärcode (0/1)</label>
+            <button class="chip" onclick="centerText('middle')">Zentrieren</button>
+            <label class="chip flex items-center gap-1.5 cursor-pointer"><input data-k="middleLocked" type="checkbox" class="accent-indigo-600 w-4 h-4"> 🔒 Textfeld sperren</label>
+          </div>
+          <div class="seg grid grid-cols-2 gap-1 p-1 bg-slate-200/70 rounded-lg text-xs text-slate-600" data-seg="middleMode">
+            <button data-v="auto">Wie alle Texte</button><button data-v="own">Eigene Gestaltung</button>
+          </div>
+          <div data-show="middleMode==own"><div data-style="middle"></div></div>
+        </div>
+
+        <div data-ctx="bottom" class="box space-y-3 hidden">
+          <textarea data-k="bottomText" rows="2" placeholder="Bogentext unten … (Enter = weitere Zeile)" class="inp resize-none"></textarea>
+          <div class="grid grid-cols-2 gap-3">
+            <div><span class="lbl">Schriftart</span><div class="fontPick relative" data-fk="bottomFont" data-tk="bottomText"></div></div>
+            <div><div class="flex justify-between"><span class="lbl">Schriftgröße</span><span class="val" data-out="bottomSize"></span></div><input data-k="bottomSize" type="range" min="6" max="60" step="0.5"></div>
+          </div>
+          <div class="flex flex-wrap gap-3 items-center">
+            <label class="flex items-center gap-1.5 text-xs text-slate-700"><input data-k="bottomAuto" type="checkbox" class="accent-indigo-600 w-4 h-4"> Größe automatisch</label>
+            <label class="flex items-center gap-1.5 text-xs text-slate-700"><input data-k="bottomUpright" type="checkbox" class="accent-indigo-600 w-4 h-4"> lesbar (nicht kopfüber)</label>
+            <label class="flex items-center gap-1.5 text-xs text-slate-700"><input data-k="bottomBinary" type="checkbox" class="accent-indigo-600 w-4 h-4"> Als Binärcode (0/1)</label>
+            <button class="chip" onclick="centerText('bottom')">Zentrieren</button>
+            <label class="chip flex items-center gap-1.5 cursor-pointer"><input data-k="bottomLocked" type="checkbox" class="accent-indigo-600 w-4 h-4"> 🔒 Textfeld sperren</label>
+          </div>
+          <div class="seg grid grid-cols-2 gap-1 p-1 bg-slate-200/70 rounded-lg text-xs text-slate-600" data-seg="bottomMode">
+            <button data-v="auto">Wie alle Texte</button><button data-v="own">Eigene Gestaltung</button>
+          </div>
+          <div data-show="bottomMode==own"><div data-style="bottom"></div></div>
+        </div>
+      </div>
+
+      <div class="w-full mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[11px] text-slate-500" data-show="view==edit">
+        <span><span class="inline-block w-3 border-t-2 border-dashed border-rose-400 align-middle mr-1"></span>Schnittkante</span>
+        <span><span class="inline-block w-3 border-t-2 border-dashed border-amber-400 align-middle mr-1"></span>Umschlagkante (ca.)</span>
+        <span><span class="inline-block w-3 border-t-2 border-slate-700 align-middle mr-1"></span>Sichtbarer Bereich</span>
+        <span>Hintergrund und Bild reichen bis zur Schnittkante – kein weißer Rand.</span>
+      </div>
+    </div>
+
+    <div class="card p-5">
+      <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
+        <h3 class="text-sm font-bold text-slate-700">Druckbogen A4</h3>
+        <div class="flex gap-2">
+          <button onclick="addToSheet(5)" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-lg text-xs font-semibold">➕ Aktuelles Design (5×)</button>
+          <button onclick="makePDF()" class="bg-slate-900 hover:bg-slate-700 text-white px-3 py-2 rounded-lg text-xs font-semibold">🖨 PDF erstellen</button>
+        </div>
+      </div>
+      <div id="sheetListWrap" class="mb-3 hidden">
+        <div class="flex justify-between items-center mb-1">
+          <span id="sheetListInfo" class="text-xs font-semibold text-slate-700"></span>
+          <div class="flex gap-3 text-xs">
+            <label class="flex items-center gap-1"><input type="checkbox" id="fillRest" class="accent-indigo-600" onchange="render(); refreshPreviewSheet()"> Rest auffüllen</label>
+            <button onclick="clearSheet()" class="text-rose-600 hover:underline">Liste leeren</button>
+          </div>
+        </div>
+        <div id="sheetList" class="flex flex-wrap gap-2"></div>
+      </div>
+      <div class="flex flex-col sm:flex-row gap-4 items-start">
+        <div id="sheetPreview" class="w-full sm:w-64 shrink-0 border border-slate-300 shadow-sm bg-white"></div>
+        <div class="text-xs text-slate-600 space-y-2">
+          <p class="font-semibold text-slate-700">So druckst du maßgenau:</p>
+          <ol class="list-decimal pl-4 space-y-1">
+            <li>Designs mit <b>„➕ Hinzufügen“</b> sammeln (je 5 Stück) – ohne Liste wird das aktuelle Design gedruckt.</li>
+            <li><b>„🖨 PDF erstellen“</b> – es entsteht ein fertiger A4-Bogen als PDF.</li>
+            <li>PDF drucken mit Skalierung <b>100 % / Tatsächliche Größe</b> (nicht „An Seite anpassen“).</li>
+          </ol>
+          <p class="text-slate-400">Zum Prüfen einen Schnittkreis nachmessen.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ EINSTELLUNGEN ============ -->
+  <div class="lg:col-span-5 lg:order-1 card p-5 lg:overflow-y-auto lg:max-h-[calc(100vh-84px)]">
+  <div class="seg grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-xl text-sm text-slate-600 mb-5" id="sideTabs">
+    <button data-tab="settings" class="on">⚙ Einstellungen</button><button data-tab="tools">🛠 Tools</button>
+  </div>
+  <div id="tab-tools" class="space-y-4 hidden">
+    <div class="box space-y-3 bg-indigo-50/60 border-indigo-100">
+      <h3 class="text-sm font-bold text-indigo-900">✨ Automatischer Button</h3>
+      <p class="text-xs text-slate-600">Texte eingeben – Farben, Schriften und ein passendes Motiv werden automatisch gewählt; danach erscheint eine Vorschau (5 Stück auf dem Bogen).</p>
+      <button onclick="openGen()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg py-2.5 text-sm font-semibold">Eingabemaske öffnen</button>
+    </div>
+    <div class="box space-y-2">
+      <h3 class="text-sm font-bold text-slate-700">Vollständiger Prompt</h3>
+      <p class="text-xs text-slate-600">Für Chats ohne den Skill „diy-button-generator“ – mit Platzhaltern zum Ausfüllen.</p>
+      <button onclick="copyText(fullPrompt({ top: '[Text oder leer]', middle: '[Text]', bottom: '[Text oder leer]', size: '25', variants: 1 }), 'Prompt kopiert')" class="chip">📋 Prompt mit Platzhaltern kopieren</button>
+    </div>
+  </div>
+  <div id="tab-settings" class="space-y-6">
+
+    <section class="space-y-3">
+      <h2 class="sec">1. Button-Größe</h2>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="lbl">Fertige Button-Größe</label>
+          <select data-k="buttonSize" class="inp">
+            <option value="25">25 mm</option><option value="32">32 mm</option><option value="37">37 mm</option>
+            <option value="50">50 mm</option><option value="56">56 mm</option><option value="75">75 mm</option>
+          </select>
+        </div>
+        <div>
+          <label class="lbl">Schnittkreis (mit Umschlag)</label>
+          <input id="cutDisplay" readonly class="inp bg-slate-50 text-slate-500 font-mono">
+        </div>
+      </div>
+      <div>
+        <label class="lbl">Eigener Schnittkreis in mm (leer = Standard)</label>
+        <input data-k="customCut" type="number" min="10" max="120" step="0.5" placeholder="z. B. 37" class="inp">
+      </div>
+    </section>
+
+    <hr class="border-slate-100">
+
+    <section class="space-y-3">
+      <h2 class="sec">2. Hintergrund</h2>
+      <div class="seg grid grid-cols-3 gap-1 p-1 bg-slate-100 rounded-lg text-xs text-slate-600" data-seg="bgType">
+        <button data-v="solid">Einfarbig</button><button data-v="linear">Linear</button><button data-v="radial">Radial</button>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="lbl" id="bgC1Lbl">Farbe</label><input data-k="bgColor1" type="color" class="clr"></div>
+        <div data-show="bgType!=solid"><label class="lbl">Endfarbe</label><input data-k="bgColor2" type="color" class="clr"></div>
+      </div>
+      <div data-show="bgType==linear">
+        <div class="flex justify-between"><label class="lbl">Verlaufswinkel</label><span class="val" data-out="bgAngle" data-unit="°"></span></div>
+        <input data-k="bgAngle" type="range" min="0" max="360">
+      </div>
+    </section>
+
+    <hr class="border-slate-100">
+
+    <section class="space-y-3" id="imageSection">
+      <h2 class="sec">3. Bild</h2>
+      <label id="dropZone" for="imageUpload" class="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition text-xs text-slate-500">
+        <span><b>Bild auswählen</b> oder hierher ziehen</span>
+      </label>
+      <p class="text-[11px] text-slate-400">Größe, Drehung und Position stellst du direkt im Editor ein (auf das Bild tippen).</p>
+    </section>
+
+    <hr class="border-slate-100">
+
+    <section class="space-y-3">
+      <h2 class="sec">4. Textgestaltung für alle Texte</h2>
+      <p class="text-[11px] text-slate-500">Gilt für jedes Textfeld, das auf „Wie alle Texte“ steht. Einzelne Felder kannst du im Editor eigen gestalten.</p>
+      <div data-style="g"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><div class="flex justify-between"><span class="lbl">Buchstabenabstand oben</span><span class="val" data-out="topSpacing"></span></div><input data-k="topSpacing" type="range" min="-2" max="15" step="0.5"></div>
+        <div><div class="flex justify-between"><span class="lbl">Buchstabenabstand unten</span><span class="val" data-out="bottomSpacing"></span></div><input data-k="bottomSpacing" type="range" min="-2" max="15" step="0.5"></div>
+      </div>
+    </section>
+
+    <hr class="border-slate-100">
+
+    <section class="space-y-3">
+      <h2 class="sec">5. Druckbogen (A4)</h2>
+      <div class="grid grid-cols-2 gap-3 items-end">
+        <div><label class="lbl">Anzahl Buttons</label><input data-k="count" type="number" min="1" class="inp font-bold text-indigo-600"></div>
+        <button onclick="fillPage()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg py-2 text-sm font-medium">Seite ganz füllen</button>
+      </div>
+      <label class="flex items-center gap-2 text-xs text-slate-700"><input data-k="printCutLine" type="checkbox" class="accent-indigo-600 w-4 h-4"> Schnittlinie mitdrucken</label>
+      <p id="sheetInfo" class="text-xs text-indigo-800 bg-indigo-50 border border-indigo-100 rounded-lg p-2"></p>
+    </section>
+  </div>
+  </div>
+</main>
+
+<!-- ============ Schnell-Button: Eingabemaske ============ -->
+<div id="genModal" class="no-print hidden fixed inset-0 z-[60] bg-slate-900/50 flex items-end sm:items-center justify-center p-0 sm:p-4" onclick="if(event.target===this)closeGen()">
+  <div class="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 space-y-4 max-h-[94vh] overflow-y-auto" style="padding-bottom:max(1.25rem, env(safe-area-inset-bottom))">
+    <div class="flex justify-between items-center">
+      <h3 class="text-base font-bold text-slate-800">✨ Automatischer Button</h3>
+      <button onclick="closeGen()" class="ubtn" title="Schließen">✕</button>
+    </div>
+    <p class="text-xs text-slate-500">Text eingeben – Farben, Schriften und ein passendes Motiv werden automatisch gewählt.</p>
+    <div class="space-y-3">
+      <div><label class="lbl">Text oben (Bogen, Enter = neue Zeile)</label><textarea id="genTop" rows="2" class="inp resize-none" placeholder="z. B. Pflegeschule"></textarea></div>
+      <div><label class="lbl">Text Mitte</label><textarea id="genMiddle" rows="2" class="inp resize-none" placeholder="z. B. Examen 2026"></textarea></div>
+      <div><label class="lbl">Text unten (Bogen, Enter = neue Zeile)</label><textarea id="genBottom" rows="2" class="inp resize-none" placeholder="z. B. Geschafft!"></textarea></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="lbl">Button-Größe</label>
+          <select id="genSize" class="inp"><option>25</option><option>32</option><option>37</option><option>50</option><option>56</option><option>75</option></select></div>
+        <div><label class="lbl">Thema</label>
+          <select id="genTheme" class="inp"><option value="auto">Automatisch erkennen</option></select></div>
+      </div>
+    </div>
+    <button onclick="autoCreate()" class="w-full bg-pink-600 hover:bg-pink-500 text-white rounded-xl py-3 text-base font-bold">✨ Button erstellen</button>
+    <details class="text-xs text-slate-600">
+      <summary class="cursor-pointer font-semibold text-slate-500">Stattdessen mit Claude-KI gestalten lassen (Prompt)</summary>
+      <div class="space-y-2 mt-2">
+        <div class="flex items-center gap-4">
+          <label class="flex items-center gap-1.5"><input type="radio" name="genMode" value="skill" checked class="accent-indigo-600"> Kurz (Skill)</label>
+          <label class="flex items-center gap-1.5"><input type="radio" name="genMode" value="full" class="accent-indigo-600"> Vollständig</label>
+        </div>
+        <textarea id="genOut" rows="4" readonly class="inp font-mono text-xs bg-slate-50"></textarea>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="copyText($('#genOut').value, 'Prompt kopiert')" class="chip">📋 Kopieren</button>
+          <a id="genOpen" href="https://claude.ai/new" target="_blank" rel="noopener" class="chip text-center">💬 In Claude öffnen</a>
+        </div>
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ============ Schnell-Button: Vorschaufenster ============ -->
+<div id="prevModal" class="no-print hidden fixed inset-0 z-[70] bg-slate-900/60 flex items-end sm:items-center justify-center p-0 sm:p-4">
+  <div class="bg-white w-full sm:max-w-2xl rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 space-y-4 max-h-[96vh] overflow-y-auto" style="padding-bottom:max(1.25rem, env(safe-area-inset-bottom))">
+    <div class="flex justify-between items-center">
+      <h3 class="text-base font-bold text-slate-800">Vorschau</h3>
+      <span id="prevInfo" class="text-xs text-slate-500"></span>
+    </div>
+    <div class="flex flex-col sm:flex-row gap-5 items-center">
+      <svg id="prevSvg" viewBox="0 0 300 300" style="width:min(80vw,20rem);height:auto;filter:drop-shadow(0 12px 20px rgba(15,23,42,.25))"></svg>
+      <div class="w-40 shrink-0">
+        <div id="prevSheet" class="border border-slate-300 bg-white shadow-sm"></div>
+        <p id="prevSheetInfo" class="text-[11px] text-slate-500 mt-1 text-center">Druckbogen</p>
+      </div>
+    </div>
+    <div class="box space-y-2">
+      <p class="text-xs font-bold text-slate-700">Bild ändern</p>
+      <div class="flex flex-wrap gap-2">
+        <button onclick="autoNewMotif()" class="chip">🎨 Neues Motiv</button>
+        <button onclick="aiMotif()" id="aiMotifBtn" class="chip hidden">🤖 KI-Motiv</button>
+        <button onclick="openPicker()" class="chip">🖼 Eigenes Bild</button>
+        <button onclick="autoNoImage()" class="chip">🚫 Ohne Bild</button>
+        <button onclick="openImgEdit()" class="chip">✏️ Bild bearbeiten</button>
+      </div>
+      <p class="text-[11px] text-slate-500">„KI-Motiv“ lässt Claude ein passendes Motiv zeichnen (nur in der Online-Ansicht verfügbar).</p>
+    </div>
+    <div class="grid grid-cols-2 gap-2">
+      <button onclick="autoVariant()" class="chip py-2.5">🔄 Andere Variante</button>
+      <button onclick="acceptAuto(true)" class="chip py-2.5">✏️ Im Editor anpassen</button>
+      <button onclick="addToSheet(5)" class="bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-2.5 text-sm font-semibold">➕ Hinzufügen (5 Stück)</button>
+      <button onclick="makePDF()" class="bg-slate-900 hover:bg-slate-700 text-white rounded-lg py-2.5 text-sm font-semibold">🖨 Drucken (PDF)</button>
+    </div>
+    <button onclick="acceptAuto(false); saveProject()" class="w-full chip py-2">💾 Projekt speichern (.json)</button>
+    <div class="flex justify-between text-xs">
+      <button onclick="backToMask()" class="text-indigo-600 hover:underline">← Text ändern</button>
+      <button onclick="discardAuto()" class="text-rose-600 hover:underline">Verwerfen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Bild bearbeiten ============ -->
+<div id="imgEdModal" class="no-print hidden fixed inset-0 z-[80] bg-slate-900/60 flex items-end sm:items-center justify-center p-0 sm:p-4">
+  <div class="bg-white w-full sm:max-w-3xl rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 space-y-4 max-h-[96vh] overflow-y-auto" style="padding-bottom:max(1.25rem, env(safe-area-inset-bottom))">
+    <div class="flex justify-between items-center">
+      <h3 class="text-base font-bold text-slate-800">✏️ Bild bearbeiten</h3>
+      <button onclick="closeImgEdit()" class="ubtn" title="Schließen">✕</button>
+    </div>
+    <div class="seg grid grid-cols-3 gap-1 p-1 bg-slate-100 rounded-xl text-xs sm:text-sm text-slate-600" id="edTabs">
+      <button data-et="intern" class="on">🛠 Eingebaut</button><button data-et="extern">🖌 Externes Tool</button><button data-et="ki">🤖 KI-Tool</button>
+    </div>
+
+    <!-- Eingebauter Editor -->
+    <div data-etp="intern" class="flex flex-col sm:flex-row gap-4">
+      <div class="shrink-0 flex flex-col items-center gap-2">
+        <canvas id="edCanvas" class="rounded-lg border border-slate-300" style="max-width:min(86vw,340px);max-height:340px;background:repeating-conic-gradient(#e2e8f0 0 25%,#fff 0 50%) 0 0/16px 16px;cursor:crosshair"></canvas>
+        <p id="edPickHint" class="text-[11px] text-pink-600 font-semibold hidden">Tippe auf die Farbe, die entfernt werden soll</p>
+      </div>
+      <div class="flex-1 space-y-2 text-xs">
+        <div class="grid grid-cols-2 gap-x-3 gap-y-1">
+          <div><div class="flex justify-between"><span class="lbl">Helligkeit</span><span class="val" id="edBv"></span></div><input type="range" id="edB" min="40" max="180" value="100"></div>
+          <div><div class="flex justify-between"><span class="lbl">Kontrast</span><span class="val" id="edCv"></span></div><input type="range" id="edC" min="40" max="200" value="100"></div>
+          <div><div class="flex justify-between"><span class="lbl">Sättigung</span><span class="val" id="edSv"></span></div><input type="range" id="edS" min="0" max="250" value="100"></div>
+          <div><div class="flex justify-between"><span class="lbl">Farbton</span><span class="val" id="edHv"></span></div><input type="range" id="edH" min="-180" max="180" value="0"></div>
+          <div><div class="flex justify-between"><span class="lbl">Weichzeichnen</span><span class="val" id="edBlv"></span></div><input type="range" id="edBl" min="0" max="12" value="0" step="0.5"></div>
+          <div><div class="flex justify-between"><span class="lbl">Toleranz (Hintergrund)</span><span class="val" id="edTv"></span></div><input type="range" id="edT" min="5" max="160" value="45"></div>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <label class="flex items-center gap-1"><input type="checkbox" id="edGray" class="accent-indigo-600"> Schwarz-Weiß</label>
+          <label class="flex items-center gap-1"><input type="checkbox" id="edSep" class="accent-indigo-600"> Sepia</label>
+          <label class="flex items-center gap-1"><input type="checkbox" id="edInv" class="accent-indigo-600"> Invertieren</label>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button class="chip" onclick="edOp('rot')">⟳ 90°</button>
+          <button class="chip" onclick="edOp('fh')">↔ Spiegeln</button>
+          <button class="chip" onclick="edOp('fv')">↕ Spiegeln</button>
+          <button class="chip" onclick="edOp('pick')">🎯 Hintergrund entfernen</button>
+          <button class="chip" onclick="edOp('white')">⬜ Weiß entfernen</button>
+          <button class="chip" onclick="edOp('nokey')">Hintergrund zurück</button>
+          <button class="chip" onclick="edOp('reset')">Alles zurücksetzen</button>
+        </div>
+        <button onclick="edApply()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg py-2.5 text-sm font-semibold">✔ Übernehmen</button>
+      </div>
+    </div>
+
+    <!-- Externes Tool -->
+    <div data-etp="extern" class="space-y-3 hidden text-sm">
+      <div id="ppEmbedBox" class="box space-y-2 hidden">
+        <p class="font-semibold text-slate-700">Photopea im Tool (ähnlich GIMP/Photoshop)</p>
+        <p class="text-xs text-slate-500">Öffnet Photopea direkt hier mit deinem Bild. Nach dem Bearbeiten auf „Fertig – übernehmen“ tippen. Benötigt Internet.</p>
+        <button onclick="ppOpen()" class="chip">🖌 Photopea hier öffnen</button>
+        <div id="ppWrap" class="hidden space-y-2">
+          <iframe id="ppFrame" class="w-full rounded-lg border border-slate-300" style="height:min(70vh,560px)"></iframe>
+          <button onclick="ppDone()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg py-2.5 text-sm font-semibold">✔ Fertig – Bild übernehmen</button>
+        </div>
+      </div>
+      <div class="box space-y-2">
+        <p class="font-semibold text-slate-700">Mit GIMP, Photopea oder einem anderen Programm</p>
+        <ol class="list-decimal pl-5 space-y-1.5 text-xs text-slate-600">
+          <li><button onclick="edExport()" class="chip">💾 Bild exportieren (PNG)</button></li>
+          <li>Im Programm bearbeiten, z. B. <a class="text-indigo-600 underline" href="https://www.gimp.org/downloads/" target="_blank" rel="noopener">GIMP</a> (am PC) oder <a class="text-indigo-600 underline" href="https://www.photopea.com" target="_blank" rel="noopener">photopea.com</a> (im Browser, auch am Handy) – als PNG oder JPG speichern.</li>
+          <li><button onclick="replaceKeepPlacement()" class="chip">🖼 Bearbeitetes Bild einfügen</button> – Position und Größe bleiben erhalten.</li>
+        </ol>
+        <p class="text-[11px] text-slate-400">GIMP ist ein Desktop-Programm und lässt sich nicht direkt in eine Webseite einbauen.</p>
+      </div>
+    </div>
+
+    <!-- KI-Tool -->
+    <div data-etp="ki" class="space-y-3 hidden text-sm">
+      <div id="kiInBox" class="box space-y-2 hidden">
+        <p class="font-semibold text-slate-700">Claude (direkt im Tool)</p>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="aiTrace()" id="aiTraceBtn" class="chip hidden">🤖 Bild als Grafik nachzeichnen</button>
+          <button onclick="aiMotifAny()" class="chip">🤖 Neues KI-Motiv zum Text</button>
+        </div>
+        <p class="text-[11px] text-slate-500">„Nachzeichnen“ macht aus deinem Foto eine klare Vektor-Grafik – gut lesbar auf kleinen Buttons.</p>
+      </div>
+      <p id="kiOffHint" class="text-xs text-slate-500 hidden">Die eingebauten KI-Funktionen gibt es nur in der Online-Ansicht (über deine Verknüpfung).</p>
+      <div class="box space-y-2">
+        <p class="font-semibold text-slate-700">Externe KI-Werkzeuge</p>
+        <ol class="list-decimal pl-5 space-y-1.5 text-xs text-slate-600">
+          <li><button onclick="edExport()" class="chip">💾 Bild exportieren (PNG)</button></li>
+          <li>Bearbeiten, z. B. Hintergrund freistellen mit <a class="text-indigo-600 underline" href="https://www.remove.bg/de" target="_blank" rel="noopener">remove.bg</a> oder <a class="text-indigo-600 underline" href="https://www.adobe.com/de/express/feature/image/remove-background" target="_blank" rel="noopener">Adobe Express</a>.</li>
+          <li><button onclick="replaceKeepPlacement()" class="chip">🖼 Ergebnis einfügen</button></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="print-area"></div>
+
+<script>
+// ================= Grunddaten =================
+const CUT_SIZES = { "25": 37, "32": 44, "37": 49, "50": 65, "56": 68, "75": 87 };
+const FONTS = [
+  ["Arial, Helvetica, sans-serif", "Arial"],
+  ["Impact, 'Arial Black', sans-serif", "Impact"],
+  ["Georgia, serif", "Georgia"],
+  ["'Courier New', monospace", "Schreibmaschine"],
+  ["'Bebas Neue', Impact, sans-serif", "Bebas Neue"],
+  ["'Fredoka', Arial, sans-serif", "Fredoka (rund)"],
+  ["'Pacifico', cursive", "Pacifico (Schreibschrift)"],
+  ["'Permanent Marker', cursive", "Permanent Marker"],
+  ["'Roboto Slab', Georgia, serif", "Roboto Slab"],
+  ["'Saira Stencil One', Impact, sans-serif", "Stencil (Schablone)", 400],
+  ["'Big Shoulders Stencil Display', Impact, sans-serif", "Stencil schmal", 800],
+  ["'Anton', Impact, sans-serif", "Anton (kräftig)", 400],
+  ["'Lobster', cursive", "Lobster (Retro-Schreibschrift)", 400],
+  ["'Bangers', Impact, cursive", "Bangers (Comic)", 400],
+  ["'Orbitron', Arial, sans-serif", "Orbitron (futuristisch)", 900],
+  ["'Caveat', cursive", "Caveat (Handschrift)", 700],
+  ["'VT323', 'Courier New', monospace", "Computer / Terminal", 400]
+];
+const fontWeight = v => { const f = FONTS.find(x => x[0] === v); return f && f[2] ? f[2] : 700; };
+// Text in Binärcode (UTF-8, 8 Bit je Zeichen) umwandeln
+function toBin(t) {
+  return [...new TextEncoder().encode(t)].map(b => b.toString(2).padStart(8, "0")).join(" ");
+}
+const PAGE = { w: 210, h: 297, margin: 5, gap: 1 };   // mm
+const STORE_KEY = "buttonStudioPro3";  // gleicher Speicher wie v3, wird beim Laden umgestellt
+const C = 150, RC = 145;   // SVG-Mittelpunkt, Radius Schnittkreis (Einheiten)
+
+const DEFAULTS = {
+  buttonSize: "25", customCut: "",
+  bgType: "solid", bgColor1: "#ffffff", bgColor2: "#4f46e5", bgAngle: 90,
+  img: "", imgAR: 1, imgFit: "slice", imgOpacity: 100, imgScale: 1, imgRotate: 0, imgX: 0, imgY: 0,
+  topText: "", topSize: 18, topFont: FONTS[0][0], topSpacing: 1, topInset: 5, topAuto: true, topSpan: 130, topRot: 0,
+  middleText: "Dein Text", middleSize: 40, middleFont: FONTS[0][0], middleAuto: true, middleW: 150, middleX: 0, middleY: 0, middleRotate: 0,
+  bottomText: "", bottomSize: 18, bottomFont: FONTS[0][0], bottomSpacing: 1, bottomInset: 5, bottomAuto: true, bottomSpan: 110, bottomRot: 0, bottomUpright: true,
+  count: 35, printCutLine: true,
+  view: "edit",
+  topMode: "auto", middleMode: "auto", bottomMode: "auto",
+  topBinary: false, middleBinary: false, bottomBinary: false,
+  imageLocked: false, topLocked: false, middleLocked: false, bottomLocked: false,
+  sheetItems: []
+};
+// Gestaltungswerte: "g" = für alle Texte, sonst je Textfeld (top/middle/bottom)
+const STYLE_DEF = {
+  ColorType: "solid", Color1: "#1e293b", Color2: "#e11d48", Color3: "#f59e0b", Use3: false, Angle: 90,
+  Outline: false, OutlineColor: "#ffffff", OutlineWidth: 4,
+  BgOn: false, BgColor: "#ffffff", BgOpacity: 85, BgRadius: 10,
+  FrameOn: false, FrameColor: "#1e293b", FrameWidth: 2
+};
+const STYLE_KEYS = Object.keys(STYLE_DEF);
+["g", "top", "middle", "bottom"].forEach(p => STYLE_KEYS.forEach(k => DEFAULTS[p + k] = STYLE_DEF[k]));
+const SWATCHES = ["#ffffff","#000000","#1e293b","#64748b","#dc2626","#f97316","#f59e0b","#facc15","#84cc16","#16a34a","#14b8a6","#0ea5e9","#2563eb","#4f46e5","#7c3aed","#c026d3","#db2777","#f9a8d4","#a16207","#d4af37"];
+let state = { ...DEFAULTS };
+
+// Ältere Speicherstände (v2/v3) auf neue Schlüssel umstellen
+function upgradeKeys(d) {
+  const map = { textType: "gColorType", textColor1: "gColor1", textColor2: "gColor2", textAngle: "gAngle", outline: "gOutline", outlineColor: "gOutlineColor", outlineWidth: "gOutlineWidth" };
+  for (const [o, n] of Object.entries(map)) if (d[o] !== undefined && d[n] === undefined) d[n] = d[o];
+  return d;
+}
+function sty(w) { const p = state[w + "Mode"] === "own" ? w : "g"; const o = {}; STYLE_KEYS.forEach(k => o[k] = state[p + k]); return o; }
+
+// Bedienfeld für eine Gestaltung erzeugen
+function styleEditor(p) {
+  const col = (k, label) => `<div><label class="lbl">${label}</label><input data-k="${p}${k}" type="color" class="clr"><div class="swrow">${SWATCHES.map(c => `<button type="button" class="sw" style="background:${c}" data-sw="${p}${k}" data-c="${c}" title="${c}"></button>`).join("")}</div></div>`;
+  const rng = (k, label, min, max, step, unit = "") => `<div><div class="flex justify-between"><span class="lbl">${label}</span><span class="val" data-out="${p}${k}" data-unit="${unit}"></span></div><input data-k="${p}${k}" type="range" min="${min}" max="${max}" step="${step}"></div>`;
+  const chk = (k, label) => `<label class="flex items-center gap-2 text-xs font-semibold text-slate-700"><input data-k="${p}${k}" type="checkbox" class="accent-indigo-600 w-4 h-4"> ${label}</label>`;
+  return `<div class="space-y-2">
+    <div class="stylebox space-y-2">
+      <h4>Textfarbe</h4>
+      <div class="seg grid grid-cols-3 gap-1 p-1 bg-slate-100 rounded-lg text-xs text-slate-600" data-seg="${p}ColorType">
+        <button data-v="solid">Einfarbig</button><button data-v="linear">Verlauf</button><button data-v="radial">Radial</button>
+      </div>
+      ${col("Color1", "Farbe")}
+      <div data-show="${p}ColorType!=solid" class="space-y-2">
+        ${col("Color2", "Endfarbe")}
+        ${chk("Use3", "Dritte Farbe (Mitte des Verlaufs)")}
+        <div data-show="${p}Use3">${col("Color3", "Mittelfarbe")}</div>
+        <div data-show="${p}ColorType==linear">${rng("Angle", "Verlaufswinkel", 0, 360, 1, "°")}</div>
+      </div>
+    </div>
+    <div class="stylebox space-y-2">
+      ${chk("Outline", "Kontur um die Buchstaben")}
+      <div data-show="${p}Outline" class="space-y-2">${col("OutlineColor", "Konturfarbe")}${rng("OutlineWidth", "Konturbreite", 0.5, 14, 0.5)}</div>
+    </div>
+    <div class="stylebox space-y-2">
+      ${chk("BgOn", "Hintergrundfarbe hinter dem Text")}
+      <div data-show="${p}BgOn" class="space-y-2">${col("BgColor", "Hintergrundfarbe")}
+        <div class="grid grid-cols-2 gap-3">${rng("BgOpacity", "Deckkraft", 10, 100, 1, "%")}${rng("BgRadius", "Eckenrundung (Mitte)", 0, 40, 1)}</div></div>
+    </div>
+    <div class="stylebox space-y-2">
+      ${chk("FrameOn", "Textrahmen")}
+      <div data-show="${p}FrameOn" class="space-y-2">${col("FrameColor", "Rahmenfarbe")}${rng("FrameWidth", "Rahmenbreite", 0.5, 10, 0.5)}</div>
+    </div>
+  </div>`;
+}
+let sel = null;          // ausgewähltes Element: image | top | middle | bottom
+let imgURL = "";         // Blob-URL des Bildes (schneller als Daten-URL)
+
+// ================= Hilfsfunktionen =================
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const r2 = n => Math.round(n * 100) / 100;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rad = d => d * Math.PI / 180, deg = r => r * 180 / Math.PI;
+const normDeg = d => { d = ((d + 180) % 360 + 360) % 360 - 180; return d; };
+
+function toast(msg) {
+  const t = $("#toast"); t.textContent = msg; t.classList.remove("hidden");
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.add("hidden"), 2600);
+}
+
+function dims() {
+  const finish = parseFloat(state.buttonSize);
+  const custom = parseFloat(state.customCut);
+  const cut = custom && custom > finish ? custom : (CUT_SIZES[state.buttonSize] || finish + 15);
+  const Rf = RC * finish / cut;
+  return { finish, cut, Rf, Rfold: Rf + (RC - Rf) * 0.4 };
+}
+
+function layout() {
+  const { cut } = dims();
+  const uw = PAGE.w - 2 * PAGE.margin, uh = PAGE.h - 2 * PAGE.margin;
+  const cols = Math.max(1, Math.floor((uw + PAGE.gap) / (cut + PAGE.gap)));
+  const rows = Math.max(1, Math.floor((uh + PAGE.gap) / (cut + PAGE.gap)));
+  const gridW = cols * cut + (cols - 1) * PAGE.gap, gridH = rows * cut + (rows - 1) * PAGE.gap;
+  return { cut, cols, rows, max: cols * rows, x0: (PAGE.w - gridW) / 2, y0: (PAGE.h - gridH) / 2 };
+}
+
+// Textbreite pro Schriftgröße 1 (fett), über Canvas gemessen
+const mctx = document.createElement("canvas").getContext("2d");
+function textW1(text, font) {
+  mctx.font = `${fontWeight(font)} 100px ${font}`;
+  return mctx.measureText(text).width / 100;
+}
+
+// ================= Text-Geometrie =================
+function arcGeom(which, placeholder) {
+  const s = state, { Rf } = dims(), LH = 1.15;
+  const raw = placeholder ? "＋ Bogentext " + (which === "top" ? "oben" : "unten") : s[which + "Text"];
+  let lines = raw.split("\n").map(l => (!placeholder && s[which + "Binary"] && l) ? toBin(l) : l);
+  while (lines.length > 1 && !lines[lines.length - 1].trim()) lines.pop();
+  const font = placeholder ? "Arial, sans-serif" : s[which + "Font"];
+  const sp = placeholder ? 0 : s[which + "Spacing"];
+  const inset = s[which + "Inset"];
+  const up = which === "bottom" && s.bottomUpright;
+  const n = lines.length;
+  const r0 = size => Math.max(15, up ? Rf - inset - size * 0.22 : Rf - inset - size * 0.72);   // äußerste Grundlinie
+  const rOf = (size, i) => Math.max(12, r0(size) - (up ? (n - 1 - i) : i) * LH * size);         // Grundlinie Zeile i
+  const w1 = lines.map(l => textW1(l || " ", font) || 0.5), len = lines.map(l => [...l].length);
+  let size = placeholder ? 11 : s[which + "Size"];
+  if (s[which + "Auto"] && !placeholder) {
+    for (let k = 0; k < 5; k++) {
+      size = Math.min(...lines.map((l, i) => l.trim() ? (rOf(size, i) * rad(s[which + "Span"]) - sp * len[i]) / w1[i] : 999));
+      size = clamp(Math.min(size, (r0(size) - 18) / Math.max(1, (n - 1) * LH + 0.6)), 5, Rf * 0.34);
+    }
+  }
+  const L = lines.map((t, i) => ({ text: t, r: rOf(size, i) }));
+  const r = r0(size), rIn = Math.min(...L.map(l => l.r));
+  const textAng = Math.max(...L.map((l, i) => deg((w1[i] * size + sp * len[i]) / l.r)));
+  const center = (which === "top" ? 270 : 90) + s[which + "Rot"];
+  const band = up ? [rIn - size * 0.85, r + size * 0.3] : [rIn - size * 0.3, r + size * 0.85];
+  return { size, r, textAng, span: s[which + "Span"], center, band, up, text: lines.join(" "), lines: L, font, sp };
+}
+
+function midGeom() {
+  const s = state, { Rf } = dims();
+  const lines = s.middleText.split("\n").map(l => s.middleBinary && l ? toBin(l) : l);
+  const w1 = Math.max(0.3, ...lines.map(l => textW1(l || " ", s.middleFont)));
+  let size = s.middleSize, autoOff = 0;
+  if (s.middleAuto) {
+    // Platz zwischen den Bogentexten berücksichtigen, damit sich nichts überlappt
+    const topY = s.topText.trim() ? C - arcGeom("top").band[0] : C - Rf * 0.92;
+    const botY = s.bottomText.trim() ? C + arcGeom("bottom").band[0] : C + Rf * 0.92;
+    const avail = Math.max(16, (botY - topY) - 2 * Math.abs(s.middleY) - 6);
+    size = clamp(Math.min((s.middleW - 6) / w1, avail / (lines.length * 1.12)), 5, 240);
+    autoOff = (topY + botY) / 2 - C;   // Mitte automatisch zwischen die Bögen setzen
+  }
+  const w = s.middleAuto ? s.middleW : Math.max(30, w1 * size + 8);
+  const h = Math.max(24, lines.length * size * 1.12 + 4);
+  return { size, w, h, cx: C + s.middleX, cy: C + s.middleY + autoOff, rot: s.middleRotate, lines };
+}
+
+function imgGeom() {
+  const s = state;
+  let bw = 290, bh = 290;
+  if (s.imgFit === "meet") { if (s.imgAR >= 1) bh = 290 / s.imgAR; else bw = 290 * s.imgAR; }
+  const k = s.imgScale, a = rad(s.imgRotate), cx = C + s.imgX, cy = C + s.imgY;
+  const T = (dx, dy) => [cx + k * (Math.cos(a) * dx - Math.sin(a) * dy), cy + k * (Math.sin(a) * dx + Math.cos(a) * dy)];
+  return { bw, bh, cx, cy, T, corners: [T(-bw/2, -bh/2), T(bw/2, -bh/2), T(bw/2, bh/2), T(-bw/2, bh/2)] };
+}
+
+function arcPath(r, which, up) {
+  const a = r2(r);
+  if (which === "top")  return `M ${C},${r2(C + r)} A ${a},${a} 0 0,1 ${C},${r2(C - r)} A ${a},${a} 0 0,1 ${C},${r2(C + r)}`;
+  if (up)               return `M ${C},${r2(C - r)} A ${a},${a} 0 0,0 ${C},${r2(C + r)} A ${a},${a} 0 0,0 ${C},${r2(C - r)}`;
+  return                       `M ${C},${r2(C - r)} A ${a},${a} 0 0,1 ${C},${r2(C + r)} A ${a},${a} 0 0,1 ${C},${r2(C - r)}`;
+}
+
+function sector(ri, ro, a1, a2) {
+  const pt = (r, a) => `${r2(C + r * Math.cos(rad(a)))},${r2(C + r * Math.sin(rad(a)))}`;
+  const large = (a2 - a1) > 180 ? 1 : 0;
+  ri = Math.max(1, r2(ri)); ro = r2(ro);
+  return `M ${pt(ro, a1)} A ${ro},${ro} 0 ${large},1 ${pt(ro, a2)} L ${pt(ri, a2)} A ${ri},${ri} 0 ${large},0 ${pt(ri, a1)} Z`;
+}
+
+// ================= SVG-Aufbau =================
+function buildButton(p, mode) {
+  const s = state, { Rf, Rfold } = dims();
+
+  let bgDef = "", bgFill = s.bgColor1;
+  if (s.bgType === "linear") {
+    const a = rad(s.bgAngle - 90);
+    bgDef = `<linearGradient id="${p}bg" gradientUnits="userSpaceOnUse" x1="${r2(C - Math.cos(a) * RC)}" y1="${r2(C - Math.sin(a) * RC)}" x2="${r2(C + Math.cos(a) * RC)}" y2="${r2(C + Math.sin(a) * RC)}"><stop offset="0" stop-color="${s.bgColor1}"/><stop offset="1" stop-color="${s.bgColor2}"/></linearGradient>`;
+    bgFill = `url(#${p}bg)`;
+  } else if (s.bgType === "radial") {
+    bgDef = `<radialGradient id="${p}bg" gradientUnits="userSpaceOnUse" cx="${C}" cy="${C}" r="${r2(Rf)}"><stop offset="0" stop-color="${s.bgColor1}"/><stop offset="1" stop-color="${s.bgColor2}"/></radialGradient>`;
+    bgFill = `url(#${p}bg)`;
+  }
+  // Textgestaltung je Feld
+  let tDef = "";
+  const tAttrOf = w => {
+    const st = sty(w); let fill = st.Color1;
+    const stops = `<stop offset="0" stop-color="${st.Color1}"/>${st.Use3 ? `<stop offset=".5" stop-color="${st.Color3}"/>` : ""}<stop offset="1" stop-color="${st.Color2}"/>`;
+    if (st.ColorType === "linear") {
+      const a = rad(st.Angle - 90);
+      tDef += `<linearGradient id="${p}${w}tg" x1="${r2(.5 - Math.cos(a) / 2)}" y1="${r2(.5 - Math.sin(a) / 2)}" x2="${r2(.5 + Math.cos(a) / 2)}" y2="${r2(.5 + Math.sin(a) / 2)}">${stops}</linearGradient>`;
+      fill = `url(#${p}${w}tg)`;
+    } else if (st.ColorType === "radial") {
+      tDef += `<radialGradient id="${p}${w}tg" cx=".5" cy=".5" r=".6">${stops}</radialGradient>`;
+      fill = `url(#${p}${w}tg)`;
+    }
+    const stroke = st.Outline ? ` stroke="${st.OutlineColor}" stroke-width="${st.OutlineWidth}" stroke-linejoin="round" paint-order="stroke"` : "";
+    return `fill="${fill}"${stroke} font-weight="${fontWeight(s[w + "Font"])}"`;
+  };
+  // Hintergrund / Rahmen hinter einem Textfeld
+  const boxAttr = w => {
+    const st = sty(w);
+    if (!st.BgOn && !st.FrameOn) return "";
+    const fill = st.BgOn ? `fill="${st.BgColor}" fill-opacity="${st.BgOpacity / 100}"` : `fill="none"`;
+    const str = st.FrameOn ? ` stroke="${st.FrameColor}" stroke-width="${st.FrameWidth}" stroke-linejoin="round"` : "";
+    return fill + str;
+  };
+
+  const fin = mode === "finished" || mode === "preview";
+  const clipR = fin ? Rf : RC;
+  let defs = `${bgDef}<clipPath id="${p}clip"><circle cx="${C}" cy="${C}" r="${r2(clipR)}"/></clipPath>`;
+  let body = `<rect x="0" y="0" width="300" height="300" fill="${bgFill}"/>`;
+
+  if (s.img) {
+    const src = imgURL || s.img;
+    const tr = `translate(${s.imgX} ${s.imgY}) rotate(${s.imgRotate} ${C} ${C}) translate(${C} ${C}) scale(${s.imgScale}) translate(${-C} ${-C})`;
+    body += `<image href="${src}" xlink:href="${src}" x="5" y="5" width="290" height="290" preserveAspectRatio="xMidYMid ${s.imgFit}" opacity="${s.imgOpacity / 100}" transform="${tr}"/>`;
+  }
+  let boxes = "", texts = "";
+  ["top", "bottom"].forEach(w => {
+    if (!s[w + "Text"].trim()) return;
+    const g = arcGeom(w), ba = boxAttr(w);
+    if (ba) {
+      const padA = deg(g.size * 0.45 / g.r), half = Math.min(179, g.textAng / 2 + padA);
+      boxes += `<path d="${sector(g.band[0] - g.size * 0.12, g.band[1] + g.size * 0.05, g.center - half, g.center + half)}" ${ba}/>`;
+    }
+    const ta = tAttrOf(w);
+    texts += `<g transform="rotate(${r2(s[w + "Rot"])} ${C} ${C})">` + g.lines.map((ln, i) => {
+      if (!ln.text.trim()) return "";
+      defs += `<path id="${p}${w}${i}" d="${arcPath(ln.r, w, g.up)}"/>`;
+      return `<text font-size="${r2(g.size)}" font-family="${esc(g.font)}" letter-spacing="${g.sp}" ${ta}><textPath href="#${p}${w}${i}" xlink:href="#${p}${w}${i}" startOffset="50%" text-anchor="middle">${esc(ln.text)}</textPath></text>`;
+    }).join("") + `</g>`;
+  });
+  if (s.middleText.trim()) {
+    const m = midGeom(), lh = 1.12, first = -((m.lines.length - 1) / 2) * lh, ba = boxAttr("middle");
+    if (ba) {
+      const bw = s.middleAuto ? m.w : m.w + 6, bh = m.h + 4, rr = Math.min(sty("middle").BgRadius, bh / 2, bw / 2);
+      boxes += `<rect x="${r2(m.cx - bw / 2)}" y="${r2(m.cy - bh / 2)}" width="${r2(bw)}" height="${r2(bh)}" rx="${rr}" transform="rotate(${m.rot} ${r2(m.cx)} ${r2(m.cy)})" ${ba}/>`;
+    }
+    const tsp = m.lines.map((l, i) => `<tspan x="${r2(m.cx)}" dy="${i === 0 ? first : lh}em">${esc(l) || " "}</tspan>`).join("");
+    texts += `<text x="${r2(m.cx)}" y="${r2(m.cy)}" font-size="${r2(m.size)}" font-family="${esc(s.middleFont)}" text-anchor="middle" dominant-baseline="central" transform="rotate(${m.rot} ${r2(m.cx)} ${r2(m.cy)})" ${tAttrOf("middle")}>${tsp}</text>`;
+  }
+  body += boxes + texts;
+  defs += tDef;
+
+  let out = `<defs>${defs}${fin ? `<radialGradient id="${p}shine" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset=".85" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".28"/></radialGradient>` : ""}</defs>`;
+  out += `<g clip-path="url(#${p}clip)">${body}</g>`;
+
+  if (mode === "edit") {
+    out += `<path pointer-events="none" fill="#fff" fill-opacity=".22" fill-rule="evenodd" d="M ${C - RC},${C} a ${RC},${RC} 0 1,0 ${2 * RC},0 a ${RC},${RC} 0 1,0 ${-2 * RC},0 Z M ${r2(C - Rf)},${C} a ${r2(Rf)},${r2(Rf)} 0 1,0 ${r2(2 * Rf)},0 a ${r2(Rf)},${r2(Rf)} 0 1,0 ${r2(-2 * Rf)},0 Z"/>`;
+    out += `<circle pointer-events="none" cx="${C}" cy="${C}" r="${RC}" fill="none" stroke="#f87171" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+    out += `<circle pointer-events="none" cx="${C}" cy="${C}" r="${r2(Rfold)}" fill="none" stroke="#fbbf24" stroke-width="1.2" stroke-dasharray="3 3"/>`;
+    out += `<circle pointer-events="none" cx="${C}" cy="${C}" r="${r2(Rf)}" fill="none" stroke="#334155" stroke-width="1.5"/>`;
+    const { finish, cut } = dims();
+    out += guideLabel("lc", RC, `Schnittkante ${cut} mm`, "#ef4444", -62);
+    out += guideLabel("lf", Rfold, "Biegekante", "#d97706", -58);
+    out += guideLabel("lv", Rf, `Sichtbarer Bereich ${finish} mm`, "#334155", -66);
+    if (s.img && !imgCovers()) out += `<g pointer-events="none"><rect x="60" y="272" width="180" height="18" rx="9" fill="#fef3c7" stroke="#f59e0b"/><text x="150" y="281" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="8.5" fill="#92400e">⚠ Bild deckt den Rand nicht ganz ab</text></g>`;
+  } else if (fin) {
+    out += `<circle pointer-events="none" cx="${C}" cy="${C}" r="${r2(Rf)}" fill="url(#${p}shine)"/>`;
+  } else if (mode === "print" && s.printCutLine) {
+    out += `<circle cx="${C}" cy="${C}" r="${RC}" fill="none" stroke="#9ca3af" stroke-width="0.8"/>`;
+  }
+  if (mode === "edit" || mode === "finished") out += buildEditor(mode);
+  return out;
+}
+
+// Beschriftung einer Hilfslinie (läuft oben rechts am Kreis entlang)
+function guideLabel(id, r, text, color, a0) {
+  const rr = r + 2.5, pt = a => `${r2(C + rr * Math.cos(rad(a)))},${r2(C + rr * Math.sin(rad(a)))}`;
+  return `<path id="${id}" d="M ${pt(a0)} A ${r2(rr)},${r2(rr)} 0 0,1 ${pt(a0 + 80)}" fill="none" pointer-events="none"/>` +
+    `<text pointer-events="none" font-family="Arial, sans-serif" font-size="7.5" font-weight="700" fill="${color}" stroke="#fff" stroke-width="2.2" paint-order="stroke" stroke-linejoin="round"><textPath href="#${id}" xlink:href="#${id}">${esc(text)}</textPath></text>`;
+}
+
+// Deckt das Bild den sichtbaren Bereich inkl. Biegekante vollständig ab?
+function imgCoverNeed() {
+  const g = imgGeom(), { Rfold } = dims(), a = rad(state.imgRotate);
+  const vx = C - g.cx, vy = C - g.cy;
+  const dx = Math.abs(Math.cos(a) * vx + Math.sin(a) * vy), dy = Math.abs(-Math.sin(a) * vx + Math.cos(a) * vy);
+  const R = Rfold + 2;
+  return Math.max((dx + R) / (g.bw / 2), (dy + R) / (g.bh / 2));   // nötige Skalierung
+}
+function imgCovers() { return !state.img || state.imgScale >= imgCoverNeed() - 0.001; }
+function coverImage() { if (isLocked("image")) return lockedMsg();
+  if (!state.img) return;
+  state.imgScale = Math.min(10, Math.ceil(imgCoverNeed() * 100) / 100); render(); toast("Bild füllt jetzt den Button bis über die Biegekante");
+}
+
+// ---------- Sperren ----------
+const lockKey = w => (w === "image" ? "imageLocked" : w + "Locked");
+const isLocked = w => !!(w && state[lockKey(w)]);
+function lockedMsg() { toast("🔒 Gesperrt – zum Bearbeiten erst entsperren"); return true; }
+
+// ---------- Editor-Ebene: Felder, Auswahl, Griffe ----------
+const COARSE = window.matchMedia && matchMedia("(pointer: coarse)").matches;
+function handle(id, x, y, shape) {
+  x = clamp(x, 6, 294); y = clamp(y, 6, 294);
+  if (COARSE) {   // auf dem Handy: größere, unsichtbare Greiffläche
+    return `<circle data-h="${id}" cx="${r2(x)}" cy="${r2(y)}" r="17" fill="transparent"/>` + handleShape(id, x, y, shape, 1.35);
+  }
+  return handleShape(id, x, y, shape, 1);
+}
+function handleShape(id, x, y, shape, k) {
+  if (shape === "rot") return `<circle data-h="${id}" cx="${r2(x)}" cy="${r2(y)}" r="${8 * k}" fill="#fff" stroke="#4f46e5" stroke-width="2.5"/><circle pointer-events="none" cx="${r2(x)}" cy="${r2(y)}" r="${2.5 * k}" fill="#4f46e5"/>`;
+  if (shape === "dia") return `<rect data-h="${id}" x="${r2(x - 6.5 * k)}" y="${r2(y - 6.5 * k)}" width="${13 * k}" height="${13 * k}" transform="rotate(45 ${r2(x)} ${r2(y)})" fill="#fff" stroke="#4f46e5" stroke-width="2.5"/>`;
+  return `<rect data-h="${id}" x="${r2(x - 7 * k)}" y="${r2(y - 7 * k)}" width="${14 * k}" height="${14 * k}" rx="2" fill="#4f46e5" stroke="#fff" stroke-width="2"/>`;
+}
+
+function buildEditor(mode) {
+  const s = state, { Rf } = dims(), edit = mode === "edit";
+  const dash = `stroke="#818cf8" stroke-width="1" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"`;
+  const selStroke = `stroke="#4f46e5" stroke-width="1.6" vector-effect="non-scaling-stroke"`;
+  const lockStroke = `stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="6 3" vector-effect="non-scaling-stroke"`;
+  let z = `<g id="editor">`;
+  const ph = (t, x, y) => `<text pointer-events="none" x="${r2(x)}" y="${r2(y)}" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="11" fill="#6366f1">${t}</text>`;
+
+  // 1) Bild (unterste Ebene)
+  if (s.img) {
+    const g = imgGeom();
+    const poly = g.corners.map(c => c.map(r2).join(",")).join(" ");
+    const lk = isLocked("image");
+    z += `<polygon ${lk ? 'pointer-events="none"' : 'data-hit="image" class="zone"'} points="${poly}" fill="transparent" ${sel === "image" ? (lk ? lockStroke : selStroke) : (edit && !lk ? dash : 'stroke="none"')}/>`;
+  } else {
+    z += `<circle data-hit="image" class="zone empty" cx="${C}" cy="${C}" r="${r2(Rf)}" fill="transparent"/>`;
+    if (edit) z += ph("＋ Bild antippen", C, C + Rf * 0.47);
+  }
+
+  // 2) Textfelder (liegen immer über dem Bild)
+  const showEmpty = edit;
+  ["top", "bottom"].forEach(w => {
+    const has = !!s[w + "Text"].trim();
+    if (!has && !showEmpty && sel !== w) return;
+    const g = arcGeom(w, !has);
+    const half = Math.min(340, Math.max(g.span, g.textAng + 8)) / 2;
+    const a1 = g.center - half, a2 = g.center + half;
+    const lk = isLocked(w);
+    const st = sel === w ? (lk ? lockStroke : selStroke) : (edit && !lk ? dash : 'stroke="none"');
+    z += `<path ${lk ? 'pointer-events="none"' : `data-hit="${w}" class="zone"`} d="${sector(g.band[0], g.band[1], a1, a2)}" fill="transparent" ${st}/>`;
+    if (!has) {
+      const pth = arcPath(g.r, w, g.up);
+      z += `<path id="ph${w}" d="${pth}" fill="none" stroke="none" pointer-events="none"/>`;
+      z += `<g transform="rotate(${r2(s[w + "Rot"])} ${C} ${C})" pointer-events="none"><text font-family="Arial, sans-serif" font-size="11" fill="#6366f1"><textPath href="#ph${w}" xlink:href="#ph${w}" startOffset="50%" text-anchor="middle">${esc(g.text)}</textPath></text></g>`;
+    }
+    if (sel === w && !lk) {
+      const rm = (g.band[0] + g.band[1]) / 2;
+      z += handle(w + "-a", C + rm * Math.cos(rad(a1)), C + rm * Math.sin(rad(a1)), "dia");
+      z += handle(w + "-b", C + rm * Math.cos(rad(a2)), C + rm * Math.sin(rad(a2)), "dia");
+    }
+  });
+
+  {
+    const has = !!s.middleText.trim();
+    if (has || showEmpty || sel === "middle") {
+      const m = midGeom();
+      const w = has ? m.w : Math.max(m.w, 80), h = has ? m.h : 26;
+      const lk = isLocked("middle");
+      const st = sel === "middle" ? (lk ? lockStroke : selStroke) : (edit && !lk ? dash : 'stroke="none"');
+      z += `<g transform="rotate(${m.rot} ${r2(m.cx)} ${r2(m.cy)})"><rect ${lk ? 'pointer-events="none"' : 'data-hit="middle" class="zone"'} x="${r2(m.cx - w / 2)}" y="${r2(m.cy - h / 2)}" width="${r2(w)}" height="${r2(h)}" rx="6" fill="transparent" ${st}/></g>`;
+      if (!has) z += ph("＋ Text Mitte", m.cx, m.cy);
+    }
+  }
+
+  // 3) Griffe der Auswahl
+  if (sel && isLocked(sel)) z += `<g pointer-events="none"><rect x="112" y="4" width="76" height="16" rx="8" fill="#334155"/><text x="150" y="12.5" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="8.5" fill="#fff">🔒 gesperrt</text></g>`;
+  if (sel === "image" && s.img && !isLocked("image")) {
+    const g = imgGeom();
+    const [tl, tr, br] = g.corners;
+    const topMid = [(tl[0] + tr[0]) / 2, (tl[1] + tr[1]) / 2];
+    const a = rad(s.imgRotate);
+    const rh = [topMid[0] + Math.sin(a) * 26, topMid[1] - Math.cos(a) * 26];
+    z += `<line pointer-events="none" x1="${r2(clamp(topMid[0],6,294))}" y1="${r2(clamp(topMid[1],6,294))}" x2="${r2(clamp(rh[0],6,294))}" y2="${r2(clamp(rh[1],6,294))}" stroke="#4f46e5" stroke-width="1.5"/>`;
+    z += handle("img-scale", br[0], br[1], "sq");
+    z += handle("img-rot", rh[0], rh[1], "rot");
+  }
+  if (sel === "middle" && s.middleText.trim() && !isLocked("middle")) {
+    const m = midGeom(), a = rad(m.rot);
+    const L = (dx, dy) => [m.cx + Math.cos(a) * dx - Math.sin(a) * dy, m.cy + Math.sin(a) * dx + Math.cos(a) * dy];
+    const br = L(m.w / 2, m.h / 2), tm = L(0, -m.h / 2), rh = L(0, -m.h / 2 - 24);
+    z += `<line pointer-events="none" x1="${r2(tm[0])}" y1="${r2(tm[1])}" x2="${r2(clamp(rh[0],6,294))}" y2="${r2(clamp(rh[1],6,294))}" stroke="#4f46e5" stroke-width="1.5"/>`;
+    z += handle("mid-size", br[0], br[1], "sq");
+    z += handle("mid-rot", rh[0], rh[1], "rot");
+  }
+  return z + `</g>`;
+}
+
+// ---------- Druckbogen-Liste (gesammelte Designs) ----------
+const urlCache = new Map();
+function urlFor(img) {
+  if (!img) return "";
+  if (img === state.img && imgURL) return imgURL;
+  if (!urlCache.has(img)) { try { urlCache.set(img, URL.createObjectURL(dataURLtoBlob(img))); } catch (e) { urlCache.set(img, img); } }
+  return urlCache.get(img);
+}
+function withState(st, fn) {
+  const s0 = state, u0 = imgURL, u = urlFor(st.img);
+  state = { ...DEFAULTS, ...st }; imgURL = u;
+  try { return fn(); } finally { state = s0; imgURL = u0; }
+}
+function designSnap() { const { sheetItems, view, ...d } = state; return { ...d, view: "edit" }; }
+// Liste der Positionen auf dem Bogen: [{design, n}]
+function sheetEntries() {
+  const items = state.sheetItems || [];
+  if (!items.length) return [{ design: designSnap(), n: state.count }];
+  return items.map(it => ({ design: it.design, n: it.count }));
+}
+function sheetLayout(E) { return withState(E[0].design, layout); }
+function sheetPositions(E, L) {
+  const pos = [], fill = $("#fillRest") && $("#fillRest").checked && (state.sheetItems || []).length;
+  E.forEach((e, i) => { for (let k = 0; k < e.n; k++) pos.push(i); });
+  if (fill) { let j = 0; while (pos.length < L.max) { pos.push(j % E.length); j++; } }
+  return pos.slice(0, L.max).map((di, idx) => {
+    const c = idx % L.cols, r = Math.floor(idx / L.cols);
+    return { di, x: L.x0 + c * (L.cut + PAGE.gap), y: L.y0 + r * (L.cut + PAGE.gap) };
+  });
+}
+function buildSheet(p) {
+  const E = sheetEntries(), L = sheetLayout(E), P = sheetPositions(E, L);
+  const syms = E.map((e, i) => withState(e.design, () => `<symbol id="${p}i${i}" viewBox="5 5 290 290" overflow="visible">${buildButton(p + "b" + i, "print")}</symbol>`)).join("");
+  const uses = P.map(q => `<use href="#${p}i${q.di}" xlink:href="#${p}i${q.di}" x="${r2(q.x)}" y="${r2(q.y)}" width="${L.cut}" height="${L.cut}"/>`).join("");
+  return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${PAGE.w} ${PAGE.h}" width="${PAGE.w}mm" height="${PAGE.h}mm">
+    <rect width="${PAGE.w}" height="${PAGE.h}" fill="#fff"/><defs>${syms}</defs>${uses}</svg>`;
+}
+function addToSheet(n) {
+  const d = designSnap(), items = state.sheetItems ? [...state.sheetItems] : [];
+  if (items.length && items[0].design.buttonSize !== d.buttonSize) { toast(`Auf dem Bogen sind ${items[0].design.buttonSize}-mm-Buttons – bitte gleiche Größe wählen oder Liste leeren.`); return; }
+  const L = layout(), used = items.reduce((a, it) => a + it.count, 0);
+  if (used >= L.max) { toast(`Der Bogen ist voll (${L.max} Plätze).`); return; }
+  const cnt = Math.min(n, L.max - used);
+  items.push({ design: d, count: cnt }); state.sheetItems = items; render(); refreshPreviewSheet();
+  toast(`➕ ${cnt} Stück hinzugefügt – Bogen: ${used + cnt} / ${L.max}`);
+}
+function removeSheetItem(i) { state.sheetItems = state.sheetItems.filter((_, k) => k !== i); render(); refreshPreviewSheet(); }
+function setItemCount(i, v) { const L = sheetLayout(sheetEntries()); state.sheetItems[i].count = clamp(parseInt(v) || 1, 1, L.max); render(); refreshPreviewSheet(); }
+function clearSheet() { state.sheetItems = []; render(); refreshPreviewSheet(); }
+function renderSheetList() {
+  const items = state.sheetItems || [], wrap = $("#sheetListWrap");
+  wrap.classList.toggle("hidden", !items.length);
+  if (!items.length) return;
+  const L = sheetLayout(sheetEntries()), used = items.reduce((a, it) => a + it.count, 0);
+  $("#sheetListInfo").textContent = `${items.length} Design(s) · ${Math.min(used, L.max)} / ${L.max} Plätze belegt`;
+  $("#sheetList").innerHTML = items.map((it, i) => `<div class="flex items-center gap-1 border border-slate-200 rounded-lg p-1 bg-white">
+      <svg viewBox="0 0 300 300" style="width:44px;height:44px">${withState(it.design, () => buildButton("t" + i + "_", "preview"))}</svg>
+      <input type="number" min="1" value="${it.count}" onchange="setItemCount(${i}, this.value)" class="w-12 border border-slate-300 rounded p-1 text-xs" title="Anzahl">
+      <button onclick="removeSheetItem(${i})" class="text-rose-500 px-1" title="Entfernen">✕</button></div>`).join("");
+}
+function refreshPreviewSheet() {
+  if ($("#prevModal").classList.contains("hidden")) return;
+  $("#prevSheet").innerHTML = buildSheet("w");
+  const sv = $("#prevSheet svg"); sv.removeAttribute("width"); sv.removeAttribute("height"); sv.style.width = "100%"; sv.style.height = "auto"; sv.style.display = "block";
+  const items = state.sheetItems || [], L = sheetLayout(sheetEntries()), used = items.reduce((a, it) => a + it.count, 0);
+  $("#prevSheetInfo").textContent = items.length ? `Bogen: ${used} / ${L.max} belegt` : "Noch leer – „Hinzufügen“ drücken";
+}
+
+// ================= Rendern =================
+let sheetTimer = null, saveTimer = null;
+function render() {
+  const { finish, cut } = dims(), L = layout();
+  $("#cutDisplay").value = cut + " mm";
+
+  // automatisch berechnete Schriftgrößen in die Regler übernehmen
+  ["top", "bottom"].forEach(w => { if (state[w + "Auto"] && state[w + "Text"].trim()) state[w + "Size"] = Math.round(arcGeom(w).size * 2) / 2; });
+  if (state.middleAuto && state.middleText.trim()) state.middleSize = Math.round(midGeom().size * 2) / 2;
+
+  $$("[data-show]").forEach(el => {
+    const cond = el.dataset.show; let ok;
+    if (cond.includes("!=")) { const [k, v] = cond.split("!="); ok = state[k] != v; }
+    else if (cond.includes("==")) { const [k, v] = cond.split("=="); ok = state[k] == v; }
+    else ok = !!state[cond];
+    el.classList.toggle("hidden", !ok);
+  });
+  $("#bgC1Lbl").textContent = state.bgType === "solid" ? "Farbe" : "Startfarbe";
+  $$("[data-seg]").forEach(seg => $$("button", seg).forEach(b => b.classList.toggle("on", state[seg.dataset.seg] === b.dataset.v)));
+  $$("#selBar button").forEach(b => { const on = b.dataset.sel === sel;
+    if (!b.dataset.label) b.dataset.label = b.textContent;
+    b.textContent = b.dataset.label + (isLocked(b.dataset.sel) ? " 🔒" : ""); b.classList.toggle("bg-white", on); b.classList.toggle("text-indigo-700", on); b.classList.toggle("shadow", on); });
+  $$("[data-ctx]").forEach(el => el.classList.toggle("hidden", el.dataset.ctx !== (sel || "none")));
+  $("#pickBtn").textContent = state.img ? "Bild ersetzen …" : "Bild auswählen …";
+  $$("[data-out]").forEach(el => {
+    const k = el.dataset.out, v = state[k];
+    el.textContent = (k === "imgScale" ? Number(v).toFixed(2) : (typeof v === "number" ? Math.round(v * 10) / 10 : v)) + (el.dataset.unit || "");
+  });
+  updateFontPickers();
+  syncInputs();
+
+  $("#previewSvg").innerHTML = buildButton("p", state.view === "finished" ? "finished" : "edit");
+
+  const n = Math.min(state.count, L.max);
+  $("#sheetInfo").innerHTML = (state.sheetItems || []).length ? `Gedruckt wird die <b>Druckbogen-Liste</b> (siehe Druckbogen). Ohne Liste: ${n} × aktuelles Design.` : `<b>${n} Buttons</b> à ${finish} mm (Schnitt ${cut} mm) auf A4 · maximal ${L.max} (${L.cols} × ${L.rows})`;
+  $("[data-k=count]").max = L.max;
+
+  clearTimeout(sheetTimer);
+  sheetTimer = setTimeout(() => {
+    $("#sheetPreview").innerHTML = buildSheet("v");
+    const sv = $("#sheetPreview svg");
+    sv.removeAttribute("width"); sv.removeAttribute("height");
+    sv.style.width = "100%"; sv.style.height = "auto"; sv.style.display = "block";
+    renderSheetList();
+  }, 200);
+  clearTimeout(saveTimer); saveTimer = setTimeout(persist, 600);
+  scheduleCommit();
+}
+
+function syncInputs() {
+  const act = document.activeElement;
+  $$("[data-k]").forEach(el => {
+    if (el === act && el.type !== "range" && el.type !== "checkbox") return;
+    const v = state[el.dataset.k];
+    if (el.type === "checkbox") { if (el.checked !== !!v) el.checked = !!v; }
+    else { const sv = v ?? ""; if (String(el.value) !== String(sv)) el.value = sv; }
+  });
+}
+
+// ================= Eingaben =================
+function bindInputs() {
+  $$("[data-k]").forEach(el => {
+    const ev = (el.tagName === "SELECT" || el.type === "checkbox") ? "change" : "input";
+    el.addEventListener(ev, () => {
+      const k = el.dataset.k;
+      if (el.type === "checkbox") state[k] = el.checked;
+      else if (el.type === "range") state[k] = parseFloat(el.value);
+      else if (k === "count") state[k] = Math.max(1, parseInt(el.value) || 1);
+      else state[k] = el.value;
+      // Schriftgröße von Hand geändert -> Automatik aus
+      if (/^(top|middle|bottom)Size$/.test(k)) state[k.replace("Size", "Auto")] = false;
+      if (k === "middleAuto" && el.checked) state.middleW = Math.max(60, midGeomManualWidth());
+      if (k === "buttonSize" || k === "customCut") clampCount();
+      render();
+    });
+  });
+  $$("[data-seg]").forEach(seg => $$("button", seg).forEach(b => b.addEventListener("click", () => {
+    const k = seg.dataset.seg, m = k.match(/^(top|middle|bottom)Mode$/);
+    if (m && b.dataset.v === "own" && !state[m[1] + "Init"]) { STYLE_KEYS.forEach(sk => state[m[1] + sk] = state["g" + sk]); state[m[1] + "Init"] = true; }
+    state[k] = b.dataset.v; render();
+  })));
+  document.addEventListener("click", e => {
+    const b = e.target.closest && e.target.closest("[data-sw]"); if (!b) return;
+    state[b.dataset.sw] = b.dataset.c; render();
+  });
+  $$("#selBar button").forEach(b => b.addEventListener("click", () => select(b.dataset.sel === sel ? null : b.dataset.sel)));
+}
+function midGeomManualWidth() {
+  const lines = state.middleText.split("\n");
+  return Math.max(...lines.map(l => textW1(l || " ", state.middleFont))) * state.middleSize + 8;
+}
+
+function select(what, focus) {
+  sel = what; render();
+  if (focus) {
+    const el = $(`[data-ctx=${what}] [data-k$=Text]`);
+    if (el) setTimeout(() => { el.focus({ preventScroll: false }); }, 50);
+  }
+}
+function centerText(w) {
+  if (isLocked(w)) return lockedMsg();
+  if (w === "middle") Object.assign(state, { middleX: 0, middleY: 0, middleRotate: 0 });
+  else state[w + "Rot"] = 0;
+  render();
+}
+function clampCount() { const L = layout(); if (state.count > L.max) state.count = L.max; }
+function fillPage() { state.count = layout().max; render(); }
+
+// ================= Schriftauswahl mit Vorschau =================
+function fontLabel(v) { const f = FONTS.find(x => x[0] === v); return f ? f[1] : "Arial"; }
+function initFontPickers() {
+  $$(".fontPick").forEach(fp => {
+    fp.innerHTML = `<button type="button" class="fp-btn"><span class="fp-cur truncate"></span><span class="text-slate-400 text-xs">▾</span></button><div class="fp-list hidden"></div>`;
+    const btn = $(".fp-btn", fp), list = $(".fp-list", fp);
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const open = list.classList.contains("hidden");
+      $$(".fp-list").forEach(l => l.classList.add("hidden"));
+      if (open) {
+        const cur = state[fp.dataset.fk], t = (state[fp.dataset.tk] || "").split("\n")[0].trim().slice(0, 22) || "Button Abc 123";
+        list.innerHTML = FONTS.map(([v, n]) => `<button type="button" class="fp-opt ${v === cur ? "on" : ""}" data-v="${esc(v)}"><span class="s" style="font-family:${esc(v)};font-weight:${fontWeight(v)}">${esc(t)}</span><span class="n">${n}</span></button>`).join("");
+        list.classList.remove("hidden");
+      }
+    });
+    list.addEventListener("click", e => {
+      const o = e.target.closest(".fp-opt"); if (!o) return;
+      e.stopPropagation(); state[fp.dataset.fk] = o.dataset.v; list.classList.add("hidden"); render();
+    });
+  });
+  document.addEventListener("click", () => $$(".fp-list").forEach(l => l.classList.add("hidden")));
+}
+function updateFontPickers() {
+  $$(".fontPick").forEach(fp => { const v = state[fp.dataset.fk], c = $(".fp-cur", fp); if (c) { c.style.fontFamily = v; c.style.fontWeight = fontWeight(v); c.textContent = fontLabel(v); } });
+}
+
+// ================= Bild =================
+function dataURLtoBlob(d) {
+  const [h, b] = d.split(","); const mime = (h.match(/data:([^;]+)/) || [])[1] || "image/png";
+  if (h.includes(";base64")) { const bin = atob(b), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return new Blob([u], { type: mime }); }
+  return new Blob([decodeURIComponent(b)], { type: mime });
+}
+function setImage(data) {
+  if (imgURL) { URL.revokeObjectURL(imgURL); imgURL = ""; }
+  state.img = data;
+  if (data) { try { imgURL = URL.createObjectURL(dataURLtoBlob(data)); } catch (e) { imgURL = ""; } }
+}
+function loadImageFile(file) {
+  if (!file) return;
+  toast("Bild wird geladen …");
+  const rd = new FileReader();
+  rd.onerror = () => toast("Die Datei konnte nicht gelesen werden.");
+  rd.onload = e => {
+    const src = e.target.result, im = new Image();
+    im.onload = () => {
+      let out = src; const MAX = 2000, w = im.naturalWidth || 0, h = im.naturalHeight || 0;
+      if (!/^data:image\/svg/.test(src) && w && h && (Math.max(w, h) > MAX || src.length > 3e6)) {
+        try {
+          const k = Math.min(1, MAX / Math.max(w, h)), cv = document.createElement("canvas");
+          cv.width = Math.round(w * k); cv.height = Math.round(h * k);
+          cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
+          out = /^data:image\/(png|gif|webp)/.test(src) ? cv.toDataURL("image/png") : cv.toDataURL("image/jpeg", 0.92);
+        } catch (err) { out = src; }
+      }
+      const keepPlace = { imgScale: state.imgScale, imgRotate: state.imgRotate, imgX: state.imgX, imgY: state.imgY, imgOpacity: state.imgOpacity, imgFit: state.imgFit };
+      setImage(out);
+      state.imgAR = w && h ? w / h : 1;
+      Object.assign(state, { imgScale: 1, imgRotate: 0, imgX: 0, imgY: 0 });
+      if (!imgCovers()) state.imgScale = Math.ceil(imgCoverNeed() * 100) / 100;
+      if (replacing) {
+        replacing = false; const nd = state.img, ar = state.imgAR;
+        Object.assign(state, keepPlace); applyEditedImage(nd, ar); closeImgEdit(); toast("Bearbeitetes Bild eingefügt"); return;
+      }
+      if (autoCtx && !$("#prevModal").classList.contains("hidden")) {
+        autoCtx.imgOverride = { img: state.img, st: { imgAR: state.imgAR, imgScale: state.imgScale, imgRotate: 0, imgX: 0, imgY: 0, imgOpacity: 100, imgFit: "slice" } };
+        render(); refreshPreview(); toast("Eigenes Bild eingefügt"); return;
+      }
+      sel = "image"; render(); toast("Bild eingefügt – ziehen, skalieren oder drehen");
+    };
+    im.onerror = () => toast("Dieses Bildformat kann der Browser nicht anzeigen (z. B. HEIC). Bitte als JPG oder PNG speichern.");
+    im.src = src;
+  };
+  rd.readAsDataURL(file);
+}
+function resetImage() { if (isLocked("image")) return lockedMsg(); Object.assign(state, { imgScale: 1, imgRotate: 0, imgX: 0, imgY: 0 }); render(); }
+function removeImage() { if (isLocked("image")) return lockedMsg(); setImage(""); $("#imageUpload").value = ""; render(); }
+function rotateImg(d) { if (isLocked("image")) return lockedMsg(); state.imgRotate = normDeg(state.imgRotate + d); render(); }
+function openPicker() {
+  const inp = $("#imageUpload");
+  try { if (inp.showPicker) inp.showPicker(); else inp.click(); } catch (_) { try { inp.click(); } catch (__) {} }
+}
+
+$("#imageUpload").addEventListener("change", e => { loadImageFile(e.target.files[0]); e.target.value = ""; });
+const dz = $("#dropZone");
+["dragenter", "dragover"].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add("over"); }));
+["dragleave", "drop"].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove("over"); }));
+dz.addEventListener("drop", e => loadImageFile(e.dataTransfer.files[0]));
+const pv = $("#previewSvg");
+pv.addEventListener("dragover", e => e.preventDefault());
+pv.addEventListener("drop", e => { e.preventDefault(); loadImageFile(e.dataTransfer.files[0]); });
+
+document.addEventListener("paste", e => {
+  if (e.target.closest && e.target.closest("input, textarea")) return;
+  const it = [...((e.clipboardData && e.clipboardData.items) || [])].find(i => i.kind === "file" && i.type.startsWith("image/"));
+  if (it) { e.preventDefault(); loadImageFile(it.getAsFile()); }
+  else if (e.target.id === "pasteZone") { e.preventDefault(); toast("In der Zwischenablage ist kein Bild."); }
+});
+$("#pasteZone").addEventListener("input", () => { $("#pasteZone").innerHTML = ""; });
+
+// ================= Direktbearbeitung im Editor =================
+function svgPt(e) {
+  const r = pv.getBoundingClientRect();
+  return { x: (e.clientX - r.left) * 300 / r.width, y: (e.clientY - r.top) * 300 / r.height };
+}
+let op = null;
+const touches = new Map();   // aktive Finger/Zeiger
+let pinch = null, rafPending = false;
+function renderSoon() { if (rafPending) return; rafPending = true; requestAnimationFrame(() => { rafPending = false; render(); }); }
+
+pv.addEventListener("pointerdown", e => {
+  touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  try { pv.setPointerCapture(e.pointerId); } catch (_) {}
+  e.preventDefault();
+  if (touches.size === 2) { startPinch(); op = null; return; }
+  if (touches.size > 2) return;
+  const t = e.target, h = t.closest && t.closest("[data-h]"), hit = t.closest && t.closest("[data-hit]");
+  const p = svgPt(e), thr = e.pointerType === "touch" ? 9 : 4;
+  if (h) op = { kind: h.dataset.h, p0: p, s0: { ...state }, active: true, thr };
+  else if (hit) {
+    const what = hit.dataset.hit;
+    if (sel !== what) { sel = what; render(); }
+    op = { kind: "move-" + what, p0: p, s0: { ...state }, active: false, thr, what, sx: e.clientX, sy: e.clientY };
+  } else { op = null; if (sel) { sel = null; render(); } }
+});
+pv.addEventListener("pointermove", e => {
+  if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pinch && touches.size >= 2) { applyPinch(); renderSoon(); return; }
+  if (!op || isLocked(op.what || sel)) return;
+  if (!op.active) { if (Math.hypot(e.clientX - op.sx, e.clientY - op.sy) < op.thr) return; op.active = true; }
+  applyOp(op, svgPt(e));
+  renderSoon();
+});
+function endPointer(e) {
+  touches.delete(e.pointerId);
+  if (pinch) { if (touches.size < 2) { pinch = null; op = null; } return; }
+  if (e.type === "pointerup" && op && !op.active && op.what) {
+    if (op.what === "image" && !state.img) openPicker();
+    else if (op.what !== "image" && !state[op.what + "Text"].trim()) select(op.what, true);
+  }
+  op = null;
+}
+pv.addEventListener("pointerup", endPointer);
+pv.addEventListener("pointercancel", endPointer);
+
+// Zwei-Finger-Geste: zoomen, drehen, verschieben
+function fingers() { const [a, b] = [...touches.values()]; return { a, b, d: Math.hypot(b.x - a.x, b.y - a.y), ang: deg(Math.atan2(b.y - a.y, b.x - a.x)), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 }; }
+function startPinch() {
+  if (!sel) sel = state.img && !isLocked("image") ? "image" : "middle";
+  pinch = { f0: fingers(), s0: { ...state }, k: 300 / pv.getBoundingClientRect().width };
+  render();
+}
+function applyPinch() {
+  if (isLocked(sel)) return;
+  const f = fingers(), f0 = pinch.f0, s0 = pinch.s0, ratio = f.d / Math.max(10, f0.d);
+  const dA = normDeg(f.ang - f0.ang), dx = (f.mx - f0.mx) * pinch.k, dy = (f.my - f0.my) * pinch.k;
+  if (sel === "image" && state.img) {
+    state.imgScale = Math.round(clamp(s0.imgScale * ratio, 0.05, 10) * 100) / 100;
+    state.imgRotate = Math.round(snapDeg(normDeg(s0.imgRotate + dA)));
+    state.imgX = Math.round(clamp(s0.imgX + dx, -400, 400)); state.imgY = Math.round(clamp(s0.imgY + dy, -400, 400));
+  } else if (sel === "middle") {
+    state.middleW = Math.round(clamp(s0.middleW * ratio, 30, 300)); state.middleAuto = true;
+    state.middleRotate = Math.round(snapDeg(normDeg(s0.middleRotate + dA)));
+    state.middleX = Math.round(clamp(s0.middleX + dx, -140, 140)); state.middleY = Math.round(clamp(s0.middleY + dy, -140, 140));
+  } else if (sel === "top" || sel === "bottom") {
+    state[sel + "Span"] = Math.round(clamp(s0[sel + "Span"] * ratio, 20, 340)); state[sel + "Auto"] = true;
+    state[sel + "Rot"] = Math.round(normDeg(s0[sel + "Rot"] + dA));
+  }
+}
+let lastSnap = null;
+function snapDeg(d) {
+  for (const q of [-180, -90, 0, 90, 180]) if (Math.abs(d - q) < 4) { if (lastSnap !== q && navigator.vibrate) { try { navigator.vibrate(8); } catch (_) {} } lastSnap = q; return q; }
+  lastSnap = null; return d;
+}
+
+function applyOp(o, p) {
+  const s0 = o.s0, dx = p.x - o.p0.x, dy = p.y - o.p0.y;
+  const ang = (pt, cx, cy) => deg(Math.atan2(pt.y - cy, pt.x - cx));
+  const dist = (pt, cx, cy) => Math.hypot(pt.x - cx, pt.y - cy);
+  const snap = snapDeg;
+  switch (o.kind) {
+    case "move-image":
+      if (!state.img) return;
+      state.imgX = Math.round(clamp(s0.imgX + dx, -400, 400)); state.imgY = Math.round(clamp(s0.imgY + dy, -400, 400)); break;
+    case "img-scale": {
+      const cx = C + s0.imgX, cy = C + s0.imgY;
+      state.imgScale = Math.round(clamp(s0.imgScale * dist(p, cx, cy) / Math.max(1, dist(o.p0, cx, cy)), 0.05, 10) * 100) / 100; break;
+    }
+    case "img-rot": {
+      const cx = C + s0.imgX, cy = C + s0.imgY;
+      state.imgRotate = Math.round(snap(normDeg(s0.imgRotate + ang(p, cx, cy) - ang(o.p0, cx, cy)))); break;
+    }
+    case "move-middle":
+      state.middleX = Math.round(clamp(s0.middleX + dx, -140, 140)); state.middleY = Math.round(clamp(s0.middleY + dy, -140, 140)); break;
+    case "mid-size": {
+      const cx = C + s0.middleX, cy = C + s0.middleY, a = rad(s0.middleRotate);
+      const lx = Math.abs(Math.cos(a) * (p.x - cx) + Math.sin(a) * (p.y - cy));
+      state.middleW = Math.round(clamp(lx * 2, 30, 300)); state.middleAuto = true; break;
+    }
+    case "mid-rot": {
+      const cx = C + s0.middleX, cy = C + s0.middleY;
+      state.middleRotate = Math.round(snap(normDeg(s0.middleRotate + ang(p, cx, cy) - ang(o.p0, cx, cy)))); break;
+    }
+    case "move-top": case "move-bottom": {
+      const w = o.what;
+      state[w + "Rot"] = Math.round(snap(normDeg(s0[w + "Rot"] + ang(p, C, C) - ang(o.p0, C, C))));
+      state[w + "Inset"] = Math.round(clamp(s0[w + "Inset"] - (dist(p, C, C) - dist(o.p0, C, C)), 0, 80)); break;
+    }
+    default: {
+      const m = o.kind.match(/^(top|bottom)-[ab]$/);
+      if (m) {
+        const w = m[1], center = (w === "top" ? 270 : 90) + s0[w + "Rot"];
+        const half = Math.abs(normDeg(ang(p, C, C) - center));
+        state[w + "Span"] = Math.round(clamp(half * 2, 20, 340)); state[w + "Auto"] = true;
+      }
+    }
+  }
+}
+// ---------- Tastatur & Mausrad (PC) ----------
+function nudge(dx, dy) {
+  const s = state;
+  if (isLocked(sel)) return lockedMsg();
+  if (sel === "image" && s.img) { s.imgX = clamp(s.imgX + dx, -400, 400); s.imgY = clamp(s.imgY + dy, -400, 400); }
+  else if (sel === "middle") { s.middleX = clamp(s.middleX + dx, -140, 140); s.middleY = clamp(s.middleY + dy, -140, 140); }
+  else if (sel === "top" || sel === "bottom") { s[sel + "Rot"] = normDeg(s[sel + "Rot"] + dx); s[sel + "Inset"] = clamp(s[sel + "Inset"] + (sel === "top" ? dy : -dy), 0, 80); }
+  else return false;
+  render(); return true;
+}
+function scaleSel(f) {
+  const s = state;
+  if (isLocked(sel)) return lockedMsg();
+  if (sel === "image" && s.img) s.imgScale = Math.round(clamp(s.imgScale * f, 0.05, 10) * 100) / 100;
+  else if (sel === "middle") { s.middleW = Math.round(clamp(s.middleW * f, 30, 300)); s.middleAuto = true; }
+  else if (sel === "top" || sel === "bottom") { s[sel + "Span"] = Math.round(clamp(s[sel + "Span"] * f, 20, 340)); s[sel + "Auto"] = true; }
+  else return false;
+  render(); return true;
+}
+function rotateSel(d) {
+  const s = state;
+  if (isLocked(sel)) return lockedMsg();
+  if (sel === "image" && s.img) s.imgRotate = normDeg(s.imgRotate + d);
+  else if (sel === "middle") s.middleRotate = normDeg(s.middleRotate + d);
+  else if (sel === "top" || sel === "bottom") s[sel + "Rot"] = normDeg(s[sel + "Rot"] + d);
+  else return false;
+  render(); return true;
+}
+document.addEventListener("keydown", e => {
+  const typing = e.target.closest && e.target.closest("input, textarea, select, [contenteditable]");
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.key.toLowerCase() === "z" && !typing) { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+  if (mod && e.key.toLowerCase() === "y" && !typing) { e.preventDefault(); redo(); return; }
+  if (mod && e.key.toLowerCase() === "s") { e.preventDefault(); saveProject(); return; }
+  if (mod && e.key.toLowerCase() === "p") { e.preventDefault(); doPrint(); return; }
+  if (typing) { if (e.key === "Escape") e.target.blur(); return; }
+  if (e.key === "Escape" && sel) { sel = null; render(); return; }
+  const step = e.shiftKey ? 10 : 1;
+  const arrows = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
+  if (arrows[e.key] && nudge(...arrows[e.key])) { e.preventDefault(); return; }
+  if ((e.key === "+" || e.key === "=") && scaleSel(1.05)) { e.preventDefault(); return; }
+  if (e.key === "-" && scaleSel(1 / 1.05)) { e.preventDefault(); return; }
+  if (e.key.toLowerCase() === "r" && rotateSel(e.shiftKey ? -15 : 15)) { e.preventDefault(); return; }
+  if ((e.key === "Delete" || e.key === "Backspace") && sel) {
+    e.preventDefault();
+    if (isLocked(sel)) { lockedMsg(); return; }
+    if (sel === "image") removeImage(); else { state[sel + "Text"] = ""; render(); }
+  }
+});
+pv.addEventListener("wheel", e => {
+  if (!sel) return;
+  e.preventDefault();
+  const d = e.deltaY || e.deltaX;
+  if (e.shiftKey || e.altKey) rotateSel(d > 0 ? 3 : -3);
+  else scaleSel(d > 0 ? 1 / 1.04 : 1.04);
+}, { passive: false });
+
+// ---------- Rückgängig / Wiederholen ----------
+const hist = { past: [], future: [], cur: null, timer: null, restoring: false };
+function snapKey(st) { const { img, ...rest } = st; return JSON.stringify(rest) + "|" + (img ? img.length + img.slice(-32) : ""); }
+function scheduleCommit() {
+  if (hist.restoring) return;
+  clearTimeout(hist.timer);
+  hist.timer = setTimeout(() => {
+    if (op || pinch) { scheduleCommit(); return; }
+    const k = snapKey(state);
+    if (hist.cur && hist.cur.k === k) return;
+    if (hist.cur) { hist.past.push(hist.cur); if (hist.past.length > 80) hist.past.shift(); hist.future = []; }
+    hist.cur = { k, st: { ...state } };
+    updUndo();
+  }, 450);
+}
+function applySnap(snap) {
+  hist.restoring = true;
+  const imgChanged = snap.st.img !== state.img;
+  state = { ...snap.st }; if (imgChanged) { const d = state.img; state.img = ""; setImage(d); }
+  hist.cur = snap; render(); hist.restoring = false; updUndo();
+}
+function undo() { if (!hist.past.length) return; hist.future.push(hist.cur); applySnap(hist.past.pop()); }
+function redo() { if (!hist.future.length) return; hist.past.push(hist.cur); applySnap(hist.future.pop()); }
+function updUndo() { $("#undoBtn").disabled = !hist.past.length; $("#redoBtn").disabled = !hist.future.length; }
+
+// ================= Drucken =================
+// ================= Bild bearbeiten =================
+const ed = { im: null, rot: 0, fh: false, fv: false, key: null, picking: false };
+const edIds = ["edB", "edC", "edS", "edH", "edBl", "edT", "edGray", "edSep", "edInv"];
+const inIframe = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
+$$("#edTabs button").forEach(b => b.addEventListener("click", () => {
+  $$("#edTabs button").forEach(x => x.classList.toggle("on", x === b));
+  $$("[data-etp]").forEach(p => p.classList.toggle("hidden", p.dataset.etp !== b.dataset.et));
+}));
+async function openImgEdit() {
+  if (isLocked("image")) return lockedMsg();
+  if (!state.img) { toast("Erst ein Bild einfügen"); openPicker(); return; }
+  try { ed.im = await loadImg(state.img); } catch (e) { toast("Bild konnte nicht geladen werden"); return; }
+  ed.rot = 0; ed.fh = ed.fv = false; ed.key = null; ed.picking = false;
+  edIds.forEach(id => { const el = $("#" + id); if (el.type === "checkbox") el.checked = false; else el.value = el.defaultValue; });
+  $("#ppEmbedBox").classList.toggle("hidden", inIframe);
+  $("#kiInBox").classList.toggle("hidden", !sampleFn); $("#kiOffHint").classList.toggle("hidden", !!sampleFn);
+  if (sampleFn) { try { const lim = sampleFn.limits ? await sampleFn.limits() : null; $("#aiTraceBtn").classList.toggle("hidden", !(lim && lim.images)); } catch (e) {} }
+  $("#imgEdModal").classList.remove("hidden"); edRender();
+}
+function closeImgEdit() { $("#imgEdModal").classList.add("hidden"); ed.picking = false; $("#edPickHint").classList.add("hidden"); $("#ppWrap").classList.add("hidden"); $("#ppFrame").src = "about:blank"; }
+function edSize(maxSide) {
+  const isSvg = /^data:image\/svg/.test(state.img);
+  let w = ed.im.naturalWidth || 600, h = ed.im.naturalHeight || 600;
+  const k = isSvg ? maxSide / Math.max(w, h) : Math.min(1, maxSide / Math.max(w, h));
+  return [Math.round(w * k), Math.round(h * k)];
+}
+function edVals() { const v = id => parseFloat($("#" + id).value); return { b: v("edB") / 100, c: v("edC") / 100, s: v("edS") / 100, h: v("edH"), bl: v("edBl"), t: v("edT"), gray: $("#edGray").checked, sep: $("#edSep").checked, inv: $("#edInv").checked }; }
+// Zeichnet das bearbeitete Bild auf ein Canvas (maxSide = Kantenlänge)
+function edDraw(cv, maxSide) {
+  const [w, h] = edSize(maxSide), rot = ed.rot % 360, swap = rot === 90 || rot === 270;
+  cv.width = swap ? h : w; cv.height = swap ? w : h;
+  const ctx = cv.getContext("2d", { willReadFrequently: true }), V = edVals();
+  ctx.clearRect(0, 0, cv.width, cv.height); ctx.save();
+  ctx.translate(cv.width / 2, cv.height / 2); ctx.rotate(rad(rot)); ctx.scale(ed.fh ? -1 : 1, ed.fv ? -1 : 1);
+  const kBlur = Math.max(w, h) / 600;
+  if (V.bl > 0 && "filter" in ctx) ctx.filter = `blur(${V.bl * kBlur}px)`;
+  ctx.drawImage(ed.im, -w / 2, -h / 2, w, h); ctx.restore(); ctx.filter = "none";
+  const id = ctx.getImageData(0, 0, cv.width, cv.height), d = id.data;
+  // Farbton-Matrix
+  const a = rad(V.h), cA = Math.cos(a), sA = Math.sin(a);
+  const M = [.213 + cA * .787 - sA * .213, .715 - cA * .715 - sA * .715, .072 - cA * .072 + sA * .928,
+             .213 - cA * .213 + sA * .143, .715 + cA * .285 + sA * .140, .072 - cA * .072 - sA * .283,
+             .213 - cA * .213 - sA * .787, .715 - cA * .715 + sA * .715, .072 + cA * .928 + sA * .072];
+  const key = ed.key, tol = V.t;
+  for (let i = 0; i < d.length; i += 4) {
+    let r = d[i], g = d[i + 1], b = d[i + 2];
+    if (V.h) { const R = r * M[0] + g * M[1] + b * M[2], G = r * M[3] + g * M[4] + b * M[5], B = r * M[6] + g * M[7] + b * M[8]; r = R; g = G; b = B; }
+    r *= V.b; g *= V.b; b *= V.b;
+    r = (r - 128) * V.c + 128; g = (g - 128) * V.c + 128; b = (b - 128) * V.c + 128;
+    const L = .299 * r + .587 * g + .114 * b;
+    r = L + (r - L) * V.s; g = L + (g - L) * V.s; b = L + (b - L) * V.s;
+    if (V.gray) { const l = .299 * r + .587 * g + .114 * b; r = g = b = l; }
+    if (V.sep) { const R = r * .393 + g * .769 + b * .189, G = r * .349 + g * .686 + b * .168, B = r * .272 + g * .534 + b * .131; r = R; g = G; b = B; }
+    if (V.inv) { r = 255 - r; g = 255 - g; b = 255 - b; }
+    d[i] = r; d[i + 1] = g; d[i + 2] = b;
+    if (key) {
+      const dist = Math.hypot(d[i] - key[0], d[i + 1] - key[1], d[i + 2] - key[2]);
+      if (dist < tol) d[i + 3] = 0; else if (dist < tol * 1.35) d[i + 3] = Math.round(d[i + 3] * (dist - tol) / (tol * .35));
+    }
+  }
+  ctx.putImageData(id, 0, 0);
+  return cv;
+}
+let edRaf = false;
+function edRender() {
+  if (edRaf) return; edRaf = true;
+  requestAnimationFrame(() => {
+    edRaf = false; if (!ed.im) return;
+    edDraw($("#edCanvas"), 520);
+    const V = edVals();
+    $("#edBv").textContent = Math.round(V.b * 100) + "%"; $("#edCv").textContent = Math.round(V.c * 100) + "%"; $("#edSv").textContent = Math.round(V.s * 100) + "%";
+    $("#edHv").textContent = V.h + "°"; $("#edBlv").textContent = V.bl; $("#edTv").textContent = V.t;
+  });
+}
+edIds.forEach(id => $("#" + id).addEventListener("input", edRender));
+function edOp(op) {
+  if (op === "rot") ed.rot = (ed.rot + 90) % 360;
+  if (op === "fh") ed.fh = !ed.fh;
+  if (op === "fv") ed.fv = !ed.fv;
+  if (op === "white") ed.key = [255, 255, 255];
+  if (op === "nokey") ed.key = null;
+  if (op === "pick") { ed.picking = true; $("#edPickHint").classList.remove("hidden"); return; }
+  if (op === "reset") { ed.rot = 0; ed.fh = ed.fv = false; ed.key = null; edIds.forEach(id => { const el = $("#" + id); if (el.type === "checkbox") el.checked = false; else el.value = el.defaultValue; }); }
+  edRender();
+}
+$("#edCanvas").addEventListener("click", e => {
+  if (!ed.picking) return;
+  const cv = $("#edCanvas"), r = cv.getBoundingClientRect();
+  const x = Math.floor((e.clientX - r.left) * cv.width / r.width), y = Math.floor((e.clientY - r.top) * cv.height / r.height);
+  // Farbe aus dem Bild OHNE Freistellung lesen
+  const tmpKey = ed.key; ed.key = null; const tmp = edDraw(document.createElement("canvas"), 520); ed.key = tmpKey;
+  const p = tmp.getContext("2d").getImageData(clamp(x, 0, tmp.width - 1), clamp(y, 0, tmp.height - 1), 1, 1).data;
+  ed.key = [p[0], p[1], p[2]]; ed.picking = false; $("#edPickHint").classList.add("hidden"); edRender();
+});
+// Bearbeitetes Bild übernehmen – Position/Größe bleiben
+function applyEditedImage(dataURL, ar) {
+  const st = { imgAR: ar || 1 };
+  if (autoCtx && !$("#prevModal").classList.contains("hidden")) {
+    const keep = { imgScale: state.imgScale, imgRotate: state.imgRotate, imgX: state.imgX, imgY: state.imgY, imgOpacity: state.imgOpacity, imgFit: state.imgFit };
+    autoCtx.imgOverride = { img: dataURL, st: { ...keep, ...st } };
+    setImage(dataURL); Object.assign(state, st); render(); refreshPreview();
+  } else { setImage(dataURL); Object.assign(state, st); render(); }
+}
+function edApply() {
+  const cv = edDraw(document.createElement("canvas"), 1600);
+  applyEditedImage(cv.toDataURL("image/png"), cv.width / cv.height);
+  closeImgEdit(); toast("Bild bearbeitet");
+}
+async function edExport() {
+  if (!state.img) return;
+  const im = await loadImg(state.img), cv = document.createElement("canvas");
+  const isSvg = /^data:image\/svg/.test(state.img), k = isSvg ? 1600 / Math.max(im.naturalWidth || 600, im.naturalHeight || 600) : 1;
+  cv.width = Math.round((im.naturalWidth || 600) * k); cv.height = Math.round((im.naturalHeight || 600) * k);
+  cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
+  const blob = await new Promise(r => cv.toBlob(r, "image/png"));
+  saveFile("button-bild_" + new Date().toISOString().slice(0, 10) + ".png", blob, "Bild exportiert");
+}
+let replacing = false;
+function replaceKeepPlacement() { replacing = true; openPicker(); }
+
+// Photopea im Tool (nur außerhalb der Online-Ansicht möglich)
+let ppReady = false, ppChunks = [];
+function ppOpen() {
+  ppReady = false; ppChunks = [];
+  $("#ppWrap").classList.remove("hidden");
+  $("#ppFrame").src = "https://www.photopea.com#" + encodeURIComponent(JSON.stringify({ environment: { lang: "de" } }));
+}
+window.addEventListener("message", async e => {
+  if (!/photopea\.com$/.test(new URL(e.origin || "http://x").hostname)) return;
+  if (e.data === "done") {
+    if (!ppReady) {   // Photopea ist bereit → Bild senden
+      ppReady = true;
+      const buf = await (await fetch(state.img)).arrayBuffer().catch(() => null);
+      if (buf) $("#ppFrame").contentWindow.postMessage(buf, "*");
+    } else if (ppChunks.length) {
+      const blob = new Blob(ppChunks, { type: "image/png" }); ppChunks = [];
+      const url = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); });
+      const im = await loadImg(url);
+      applyEditedImage(url, im.naturalWidth / im.naturalHeight); closeImgEdit(); toast("Bild aus Photopea übernommen");
+    }
+  } else if (e.data instanceof ArrayBuffer) ppChunks.push(e.data);
+});
+function ppDone() { if (!ppReady) { toast("Photopea lädt noch …"); return; } $("#ppFrame").contentWindow.postMessage('app.activeDocument.saveToOE("png");', "*"); }
+
+// KI: Foto als Grafik nachzeichnen / KI-Motiv ohne Vorschau
+async function aiTrace() {
+  if (!sampleFn || aiBusy) return;
+  aiBusy = true; const btn = $("#aiTraceBtn"), old = btn.textContent; btn.textContent = "🤖 Zeichne …";
+  try {
+    const cv = edDraw(document.createElement("canvas"), 900);
+    const blob = await new Promise(r => cv.toBlob(r, "image/jpeg", .9));
+    const res = await sampleFn(`Zeichne das angehängte Bild als vereinfachte, flache Vektor-Grafik (SVG) nach – geeignet als Motiv für einen kleinen runden Anstecker-Button.
+Anforderungen: viewBox="0 0 600 600", Hauptmotiv mittig und gut erkennbar, wenige klare Flächen und Farben, deutliche Konturen, Hintergrund füllt die ganze Fläche. KEINE Schrift, keine Bilder, keine Links, keine Skripte.
+Antworte ausschließlich mit dem vollständigen <svg>…</svg>-Code.`, { images: [blob], modelTier: "default" });
+    const img = cleanSVG(res.text || ""); if (!img) throw { message: "Kein gültiges SVG erhalten" };
+    applyEditedImage(img, 1); closeImgEdit(); toast("🤖 Grafik eingefügt");
+  } catch (e) { toast("KI-Nachzeichnen fehlgeschlagen: " + ((e && e.message) || "Fehler")); }
+  finally { aiBusy = false; btn.textContent = old; }
+}
+async function aiMotifAny() {
+  if (autoCtx && !$("#prevModal").classList.contains("hidden")) { closeImgEdit(); return aiMotif(); }
+  // außerhalb der Vorschau: temporären Kontext aus dem aktuellen Design bilden
+  autoCtx = { backup: { ...state }, input: { top: state.topText, middle: state.middleText, bottom: state.bottomText, size: parseInt(state.buttonSize), theme: "auto" }, seed: 1, k: 0, motifSeed: 0, imgOverride: null,
+    theme: detectTheme(state.topText + " " + state.middleText + " " + state.bottomText).name, pal: [state.bgColor1, state.bgColor2, state.gColor1, state.gColor2] };
+  closeImgEdit();
+  const keepState = { ...state };
+  await aiMotifRaw(img => { state = { ...keepState }; setImage(img); Object.assign(state, { imgAR: 1, imgScale: 1, imgRotate: 0, imgX: 0, imgY: 0, imgFit: "slice" }); render(); });
+  autoCtx = null;
+}
+
+// ================= PDF direkt erzeugen (Canvas + jsPDF) =================
+function loadScript(src) { return new Promise((ok, fail) => { const sc = document.createElement("script"); sc.src = src; sc.onload = ok; sc.onerror = fail; document.head.appendChild(sc); }); }
+function loadImg(src) { return new Promise((ok, fail) => { const im = new Image(); im.onload = () => ok(im); im.onerror = fail; im.src = src; }); }
+async function ensureFonts(st) {
+  if (!document.fonts) return;
+  const fams = new Set([st.topFont, st.middleFont, st.bottomFont]);
+  await Promise.all([...fams].map(f => document.fonts.load(`${fontWeight(f)} 40px ${f}`, "AÄgß01").catch(() => {})));
+}
+function canvasFill(ctx, st, bb) {
+  if (st.ColorType === "solid") return st.Color1;
+  let g;
+  if (st.ColorType === "linear") {
+    const a = rad(st.Angle - 90);
+    g = ctx.createLinearGradient(bb.x + bb.w * (.5 - Math.cos(a) / 2), bb.y + bb.h * (.5 - Math.sin(a) / 2), bb.x + bb.w * (.5 + Math.cos(a) / 2), bb.y + bb.h * (.5 + Math.sin(a) / 2));
+  } else {
+    const cx = bb.x + bb.w / 2, cy = bb.y + bb.h / 2;
+    g = ctx.createRadialGradient(cx, cy, 0, cx, cy, .6 * Math.hypot(bb.w, bb.h) / Math.SQRT2);
+  }
+  g.addColorStop(0, st.Color1); if (st.Use3) g.addColorStop(.5, st.Color3); g.addColorStop(1, st.Color2);
+  return g;
+}
+// Zeichnet ein Design (Schnittkreis) auf ein Canvas mit px Kantenlänge
+async function drawButtonCanvas(design, px) {
+  // Schriften und Bild VOR dem Zeichnen laden – das Zeichnen selbst läuft ohne Unterbrechung
+  await ensureFonts({ ...DEFAULTS, ...design });
+  let im = null; if (design.img) { try { im = await loadImg(design.img); } catch (e) { im = null; } }
+  return withState(design, () => {
+    const s = state, { Rf } = dims();
+    const cv = document.createElement("canvas"); cv.width = cv.height = px;
+    const ctx = cv.getContext("2d"), k = px / 290;
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, px, px);
+    ctx.setTransform(k, 0, 0, k, -5 * k, -5 * k);
+    ctx.save(); ctx.beginPath(); ctx.arc(C, C, RC, 0, Math.PI * 2); ctx.clip();
+    // Hintergrund
+    if (s.bgType === "linear") { const a = rad(s.bgAngle - 90); const g = ctx.createLinearGradient(C - Math.cos(a) * RC, C - Math.sin(a) * RC, C + Math.cos(a) * RC, C + Math.sin(a) * RC); g.addColorStop(0, s.bgColor1); g.addColorStop(1, s.bgColor2); ctx.fillStyle = g; }
+    else if (s.bgType === "radial") { const g = ctx.createRadialGradient(C, C, 0, C, C, Rf); g.addColorStop(0, s.bgColor1); g.addColorStop(1, s.bgColor2); ctx.fillStyle = g; }
+    else ctx.fillStyle = s.bgColor1;
+    ctx.fillRect(0, 0, 300, 300);
+    // Bild
+    if (s.img && im) {
+      try {
+        const iw = im.naturalWidth || 600, ih = im.naturalHeight || 600, ar = iw / ih;
+        ctx.save();
+        ctx.translate(s.imgX, s.imgY); ctx.translate(C, C); ctx.rotate(rad(s.imgRotate)); ctx.scale(s.imgScale, s.imgScale); ctx.translate(-C, -C);
+        ctx.globalAlpha = s.imgOpacity / 100;
+        if (s.imgFit === "slice") {
+          ctx.beginPath(); ctx.rect(5, 5, 290, 290); ctx.clip();
+          let sw = iw, sh = ih; if (ar > 1) sw = ih; else sh = iw;
+          ctx.drawImage(im, (iw - sw) / 2, (ih - sh) / 2, sw, sh, 5, 5, 290, 290);
+        } else {
+          let w = 290, h = 290; if (ar >= 1) h = 290 / ar; else w = 290 * ar;
+          ctx.drawImage(im, C - w / 2, C - h / 2, w, h);
+        }
+        ctx.restore();
+      } catch (e) {}
+    }
+    // Text-Hintergründe / Rahmen
+    const boxDraw = (w, path) => {
+      const st = sty(w); if (!st.BgOn && !st.FrameOn) return;
+      if (st.BgOn) { ctx.save(); ctx.globalAlpha = st.BgOpacity / 100; ctx.fillStyle = st.BgColor; ctx.fill(path); ctx.restore(); }
+      if (st.FrameOn) { ctx.save(); ctx.lineWidth = st.FrameWidth; ctx.strokeStyle = st.FrameColor; ctx.lineJoin = "round"; ctx.stroke(path); ctx.restore(); }
+    };
+    const arcs = ["top", "bottom"].filter(w => s[w + "Text"].trim()).map(w => ({ w, g: arcGeom(w) }));
+    arcs.forEach(({ w, g }) => {
+      const padA = deg(g.size * 0.45 / g.r), half = Math.min(179, g.textAng / 2 + padA);
+      boxDraw(w, new Path2D(sector(g.band[0] - g.size * 0.12, g.band[1] + g.size * 0.05, g.center - half, g.center + half)));
+    });
+    let m = null;
+    if (s.middleText.trim()) {
+      m = midGeom();
+      const bw = s.middleAuto ? m.w : m.w + 6, bh = m.h + 4, rr = Math.min(sty("middle").BgRadius, bh / 2, bw / 2);
+      const p = new Path2D(), x = -bw / 2, y = -bh / 2;
+      p.moveTo(x + rr, y); p.arcTo(x + bw, y, x + bw, y + bh, rr); p.arcTo(x + bw, y + bh, x, y + bh, rr); p.arcTo(x, y + bh, x, y, rr); p.arcTo(x, y, x + bw, y, rr); p.closePath();
+      ctx.save(); ctx.translate(m.cx, m.cy); ctx.rotate(rad(m.rot)); boxDraw("middle", p); ctx.restore();
+    }
+    // Texte
+    const paintText = (w, draw, bb) => {
+      const st = sty(w);
+      ctx.font = `${fontWeight(s[w + "Font"])} ${w === "middle" ? m.size : arcGeom(w).size}px ${s[w + "Font"]}`;
+      if (st.Outline) { ctx.lineWidth = st.OutlineWidth; ctx.strokeStyle = st.OutlineColor; ctx.lineJoin = "round"; draw("stroke"); }
+      ctx.fillStyle = canvasFill(ctx, st, bb); draw("fill");
+    };
+    arcs.forEach(({ w, g }) => {
+      ctx.save(); ctx.translate(C, C); ctx.rotate(rad(s[w + "Rot"])); ctx.translate(-C, -C);
+      ctx.font = `${fontWeight(g.font)} ${g.size}px ${g.font}`; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+      const base = w === "top" ? 270 : 90, dir = (w === "bottom" && g.up) ? -1 : 1;
+      const pts = [];
+      g.lines.forEach(ln => {
+        if (!ln.text.trim()) return;
+        const chars = [...ln.text], ws = chars.map(c => ctx.measureText(c).width + g.sp), W = ws.reduce((a, b) => a + b, 0);
+        let acc = 0;
+        chars.forEach((c, i) => {
+          const th = rad(base) - dir * (W / 2) / ln.r + dir * (acc + (ws[i] - g.sp) / 2) / ln.r;
+          pts.push({ c, x: C + ln.r * Math.cos(th), y: C + ln.r * Math.sin(th), rot: th + dir * Math.PI / 2 }); acc += ws[i];
+        });
+      });
+      const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+      const bb = { x: Math.min(...xs) - g.size / 2, y: Math.min(...ys) - g.size, w: Math.max(...xs) - Math.min(...xs) + g.size, h: Math.max(...ys) - Math.min(...ys) + g.size * 1.5 };
+      paintText(w, mode => pts.forEach(p => { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); mode === "stroke" ? ctx.strokeText(p.c, 0, 0) : ctx.fillText(p.c, 0, 0); ctx.restore(); }), bb);
+      ctx.restore();
+    });
+    if (m) {
+      ctx.save(); ctx.translate(m.cx, m.cy); ctx.rotate(rad(m.rot));
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      const n = m.lines.length, first = -((n - 1) / 2) * 1.12;
+      ctx.font = `${fontWeight(s.middleFont)} ${m.size}px ${s.middleFont}`;
+      const wMax = Math.max(...m.lines.map(l => ctx.measureText(l).width));
+      const bb = { x: -wMax / 2, y: -n * m.size * 1.12 / 2, w: wMax, h: n * m.size * 1.12 };
+      paintText("middle", mode => m.lines.forEach((l, i) => { const y = (first + i * 1.12) * m.size; mode === "stroke" ? ctx.strokeText(l, 0, y) : ctx.fillText(l, 0, y); }), bb);
+      ctx.restore();
+    }
+    ctx.restore();
+    return cv;
+  });
+}
+let pdfBusy = false;
+async function makePDF() {
+  if (pdfBusy) return; pdfBusy = true;
+  toast("PDF wird erstellt …");
+  try {
+    if (!window.jspdf) await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+    const E = sheetEntries(), L = sheetLayout(E), P = sheetPositions(E, L);
+    const doc = new window.jspdf.jsPDF({ unit: "mm", format: "a4", orientation: "portrait", compress: true });
+    const PXMM = 16;   // ca. 400 dpi
+    const imgs = [];
+    for (let i = 0; i < E.length; i++) {
+      const cv = await drawButtonCanvas(E[i].design, Math.round(L.cut * PXMM));
+      imgs.push(cv.toDataURL("image/jpeg", 0.93));
+    }
+    P.forEach(q => {
+      doc.addImage(imgs[q.di], "JPEG", q.x, q.y, L.cut, L.cut, "btn" + q.di, "FAST");
+    });
+    doc.setDrawColor(156, 163, 175); doc.setLineWidth(0.15);
+    P.forEach(q => { if (E[q.di].design.printCutLine !== false) doc.circle(q.x + L.cut / 2, q.y + L.cut / 2, L.cut / 2, "S"); });
+    doc.setFontSize(6); doc.setTextColor(150);
+    doc.text(`DIY-Button-StudioPro · ${E[0].design.buttonSize} mm Buttons · Schnitt ${L.cut} mm · ${P.length} Stück · mit 100 % drucken`, 5, 294.5);
+    const blob = doc.output("blob"), name = `Buttons_${E[0].design.buttonSize}mm_${new Date().toISOString().slice(0, 10)}.pdf`;
+    await saveFile(name, blob, "PDF gespeichert");
+  } catch (e) {
+    console.error(e);
+    toast("PDF konnte nicht erstellt werden – öffne den Druckdialog …");
+    try { preparePrint(); window.print(); } catch (_) {}
+  } finally { pdfBusy = false; }
+}
+// Datei speichern: in der Online-Ansicht über die Download-Freigabe, sonst als normaler Download
+async function saveFile(name, data, okMsg) {
+  if (downloadsNS) {
+    try { await downloadsNS.save({ filename: name, data }); toast(okMsg); return; }
+    catch (e) { if (e && e.code === "declined") { toast("Speichern abgebrochen"); return; } }
+  }
+  const blob = data instanceof Blob ? data : new Blob([data]);
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast(okMsg);
+}
+
+function preparePrint() { $("#print-area").innerHTML = buildSheet("s"); }
+function doPrint() { makePDF(); }
+window.addEventListener("beforeprint", preparePrint);
+window.addEventListener("afterprint", () => { $("#print-area").innerHTML = ""; });
+
+// ================= Speichern / Laden =================
+function persist() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+  catch (e) { try { localStorage.setItem(STORE_KEY, JSON.stringify({ ...state, img: "" })); } catch (_) {} }
+}
+function restore() {
+  try { const d = JSON.parse(localStorage.getItem(STORE_KEY) || "null"); if (d) { state = { ...DEFAULTS, ...upgradeKeys(d) }; setImage(state.img); } } catch (e) {}
+}
+function saveProject() {
+  const json = JSON.stringify({ app: "button-studio-pro-8", ...state }, null, 1);
+  saveFile("button_projekt_" + new Date().toISOString().slice(0, 10) + ".json", json, "Projekt gespeichert");
+}
+function migrate(d) {
+  if (/^button-studio-pro-[2-8]$/.test(d.app || "")) return upgradeKeys(d);
+  const m = {};
+  const map = { buttonSize: "buttonSize", buttonCount: "count", imgScale: "imgScale", imgX: "imgX", imgY: "imgY",
+    uploadedImageBase64: "img", bgColor1: "bgColor1", bgColor2: "bgColor2", bgGradientAngle: "bgAngle",
+    textColor1: "gColor1", textColor2: "gColor2", topText: "topText", topTextSize: "topSize", topTextFont: "topFont",
+    middleText: "middleText", middleTextSize: "middleSize", middleTextFont: "middleFont",
+    bottomText: "bottomText", bottomTextSize: "bottomSize", bottomTextFont: "bottomFont", bottomRotate180: "bottomUpright" };
+  for (const [o, n] of Object.entries(map)) if (d[o] !== undefined) m[n] = d[o];
+  if (d.bgGradientEnable !== undefined) m.bgType = d.bgGradientEnable ? "linear" : "solid";
+  if (d.textGradientEnable !== undefined) m.gColorType = d.textGradientEnable ? "linear" : "solid";
+  ["count", "imgScale", "imgX", "imgY", "bgAngle", "topSize", "middleSize", "bottomSize"].forEach(k => { if (m[k] !== undefined) m[k] = Number(m[k]); });
+  ["topFont", "middleFont", "bottomFont"].forEach(k => {
+    if (m[k]) { const f = FONTS.find(([v]) => v.split(",")[0].replace(/'/g, "") === m[k].split(",")[0].replace(/'/g, "")); m[k] = f ? f[0] : FONTS[0][0]; }
+  });
+  m.topAuto = m.middleAuto = m.bottomAuto = false;
+  return m;
+}
+$("#loadProjectInput").addEventListener("change", e => {
+  const f = e.target.files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = ev => {
+    try {
+      state = { ...DEFAULTS, ...migrate(JSON.parse(ev.target.result)) }; setImage(state.img);
+      if (state.img) { const im = new Image(); im.onload = () => { state.imgAR = im.naturalWidth / im.naturalHeight || 1; render(); }; im.src = state.img; }
+      clampCount(); sel = null; render(); toast("Projekt geladen");
+    } catch (err) { toast("Die Datei konnte nicht gelesen werden."); }
+    e.target.value = "";
+  };
+  rd.readAsText(f);
+});
+function resetAll() { setImage(""); state = { ...DEFAULTS }; sel = null; render(); toast("Neues Design begonnen"); }
+
+// ================= Automatischer Button (ohne KI, direkt im Tool) =================
+// Kleine Symbol-Bibliothek (Pfade im 100×100-Feld)
+function starPts(n = 5, ro = 48, ri = 20) { const p = []; for (let i = 0; i < n * 2; i++) { const r = i % 2 ? ri : ro, a = Math.PI / n * i - Math.PI / 2; p.push(`${r2(50 + r * Math.cos(a))},${r2(50 + r * Math.sin(a))}`); } return p.join(" "); }
+const ICONS = {
+  heart: c => `<path d="M50 88C22 66 6 49 6 30C6 16 17 6 30 6c9 0 16 5 20 13c4-8 11-13 20-13c13 0 24 10 24 24c0 19-16 36-44 58z" fill="${c}"/>`,
+  star: c => `<polygon points="${starPts()}" fill="${c}"/>`,
+  cross: c => `<path d="M38 8h24v30h30v24H62v30H38V62H8V38h30z" fill="${c}"/>`,
+  cap: c => `<path d="M50 14L96 36L50 58L4 36z" fill="${c}"/><path d="M24 48v20c0 8 12 14 26 14s26-6 26-14V48L50 60z" fill="${c}"/><path d="M88 40v26" stroke="${c}" stroke-width="4"/><circle cx="88" cy="70" r="5" fill="${c}"/>`,
+  leaf: c => `<path d="M12 88C12 42 42 12 92 10C90 58 60 88 12 88z" fill="${c}"/><path d="M14 86L70 30" stroke="#fff" stroke-opacity=".5" stroke-width="4"/>`,
+  note: c => `<ellipse cx="28" cy="76" rx="16" ry="12" fill="${c}"/><ellipse cx="74" cy="66" rx="16" ry="12" fill="${c}"/><path d="M42 76V20l46-10v56" stroke="${c}" stroke-width="7" fill="none"/><path d="M42 30l46-10" stroke="${c}" stroke-width="10"/>`,
+  ball: c => `<circle cx="50" cy="50" r="44" fill="none" stroke="${c}" stroke-width="7"/><polygon points="50,30 68,43 61,64 39,64 32,43" fill="${c}"/>`,
+  balloon: c => `<ellipse cx="50" cy="40" rx="28" ry="34" fill="${c}"/><path d="M50 74q-6 10 4 16t-2 10" stroke="${c}" stroke-width="3" fill="none"/>`,
+  tree: c => `<polygon points="50,6 80,44 66,44 88,72 12,72 34,44 20,44" fill="${c}"/><rect x="43" y="72" width="14" height="18" fill="${c}"/>`,
+  egg: c => `<ellipse cx="50" cy="54" rx="32" ry="42" fill="${c}"/>`,
+  pencil: c => `<path d="M70 8l22 22L36 86L10 92l6-26z" fill="${c}"/>`,
+  book: c => `<path d="M8 20q22-8 42 4q20-12 42-4v64q-22-8-42 4q-20-12-42-4z" fill="${c}"/><path d="M50 24v64" stroke="#fff" stroke-opacity=".6" stroke-width="3"/>`,
+  sun: c => `<circle cx="50" cy="50" r="20" fill="${c}"/>${[...Array(8)].map((_, i) => `<rect x="47" y="4" width="6" height="18" rx="3" fill="${c}" transform="rotate(${i * 45} 50 50)"/>`).join("")}`,
+  dot: c => `<circle cx="50" cy="50" r="40" fill="${c}"/>`,
+  ring: c => `<circle cx="50" cy="50" r="36" fill="none" stroke="${c}" stroke-width="12"/>`,
+  bolt: c => `<polygon points="58,4 18,56 46,56 38,96 82,40 54,40" fill="${c}"/>`,
+  paw: c => `<ellipse cx="50" cy="66" rx="22" ry="18" fill="${c}"/><circle cx="22" cy="40" r="10" fill="${c}"/><circle cx="40" cy="24" r="10" fill="${c}"/><circle cx="60" cy="24" r="10" fill="${c}"/><circle cx="78" cy="40" r="10" fill="${c}"/>`,
+  bin: c => `<text x="50" y="66" text-anchor="middle" font-family="monospace" font-weight="700" font-size="52" fill="${c}">01</text>`
+};
+const F = n => (FONTS.find(f => f[1].startsWith(n) || f[0].replace(/'/g, "").startsWith(n)) || FONTS[0])[0];
+const THEMES = [
+  { id: "pflege", name: "Pflege & Gesundheit", words: ["pflege", "kranken", "patient", "klinik", "station", "gesund", "medizin", "arzt", "ärzt", "hebamme", "praxis", "notfall", "sanitä", "herz", "care", "nurse"],
+    icons: ["heart", "cross", "heart", "dot"], layout: ["ring", "scatter"],
+    pal: [["#0ea5e9", "#0369a1", "#ffffff", "#e0f2fe"], ["#14b8a6", "#0f766e", "#ffffff", "#ccfbf1"], ["#ffffff", "#e0f2fe", "#0c4a6e", "#ef4444"], ["#f43f5e", "#be123c", "#ffffff", "#ffe4e6"]],
+    fonts: [[F("Fredoka"), F("Arial")], [F("Anton"), F("Fredoka")], [F("Roboto"), F("Arial")]] },
+  { id: "abschluss", name: "Abschluss & Prüfung", words: ["examen", "prüfung", "abschluss", "geschafft", "bestanden", "abi", "diplom", "bachelor", "master", "zeugnis", "absolvent", "graduation", "fertig", "jahrgang"],
+    icons: ["cap", "star", "star", "dot"], layout: ["burst", "ring"],
+    pal: [["#1e3a8a", "#0f172a", "#fde68a", "#facc15"], ["#111827", "#374151", "#ffffff", "#d4af37"], ["#7c3aed", "#312e81", "#ffffff", "#fbbf24"], ["#fef3c7", "#fde68a", "#1e293b", "#b45309"]],
+    fonts: [[F("Anton"), F("Roboto")], [F("Bebas"), F("Arial")], [F("Lobster"), F("Roboto")]] },
+  { id: "party", name: "Feier & Geburtstag", words: ["geburtstag", "party", "feier", "fest", "happy", "jubil", "hochzeit", "glückwunsch", "prost", "fasching", "karneval", "jahre"],
+    icons: ["balloon", "star", "dot", "ring"], layout: ["confetti", "burst"],
+    pal: [["#ec4899", "#8b5cf6", "#ffffff", "#fde047"], ["#f97316", "#ef4444", "#ffffff", "#fef08a"], ["#facc15", "#f97316", "#1e1b4b", "#ffffff"], ["#06b6d4", "#3b82f6", "#ffffff", "#f472b6"]],
+    fonts: [[F("Bangers"), F("Fredoka")], [F("Lobster"), F("Fredoka")], [F("Fredoka"), F("Bangers")]] },
+  { id: "liebe", name: "Liebe & Freundschaft", words: ["liebe", "love", "herz", "freund", "danke", "mama", "papa", "familie", "kuss", "valentin", "hug"],
+    icons: ["heart", "heart", "dot"], layout: ["scatter", "ring"],
+    pal: [["#fda4af", "#e11d48", "#ffffff", "#fff1f2"], ["#ffe4e6", "#fecdd3", "#9f1239", "#f43f5e"], ["#be123c", "#881337", "#ffffff", "#fda4af"]],
+    fonts: [[F("Pacifico"), F("Fredoka")], [F("Lobster"), F("Arial")], [F("Caveat"), F("Fredoka")]] },
+  { id: "natur", name: "Natur & Umwelt", words: ["natur", "umwelt", "klima", "grün", "baum", "wald", "garten", "bio", "erde", "planet", "nachhaltig", "blume", "frühling", "sommer"],
+    icons: ["leaf", "leaf", "sun", "dot"], layout: ["ring", "scatter"],
+    pal: [["#16a34a", "#14532d", "#ffffff", "#bbf7d0"], ["#84cc16", "#15803d", "#ffffff", "#fef9c3"], ["#ecfccb", "#bbf7d0", "#14532d", "#16a34a"]],
+    fonts: [[F("Fredoka"), F("Caveat")], [F("Roboto"), F("Arial")], [F("Anton"), F("Fredoka")]] },
+  { id: "sport", name: "Sport & Team", words: ["sport", "fußball", "fussball", "team", "lauf", "marathon", "verein", "sieg", "champion", "turnier", "tor", "fit", "gewinn", "mannschaft", "liga"],
+    icons: ["ball", "star", "bolt"], layout: ["burst", "scatter"],
+    pal: [["#dc2626", "#7f1d1d", "#ffffff", "#fde047"], ["#2563eb", "#1e3a8a", "#ffffff", "#facc15"], ["#111827", "#16a34a", "#ffffff", "#a3e635"]],
+    fonts: [[F("Saira"), F("Anton")], [F("Anton"), F("Bebas")], [F("Big Shoulders"), F("Arial")]] },
+  { id: "musik", name: "Musik", words: ["musik", "music", "band", "chor", "konzert", "song", "rock", "festival", "tanz", "disco"],
+    icons: ["note", "note", "star"], layout: ["scatter", "ring"],
+    pal: [["#111827", "#4c1d95", "#ffffff", "#a78bfa"], ["#f59e0b", "#b45309", "#1c1917", "#ffffff"]],
+    fonts: [[F("Bangers"), F("Permanent")], [F("Orbitron"), F("Arial")]] },
+  { id: "schule", name: "Schule & Lernen", words: ["schule", "lehrer", "lernen", "klasse", "unterricht", "kurs", "studium", "uni", "azubi", "ausbildung", "bildung", "wissen", "lehr"],
+    icons: ["pencil", "book", "star"], layout: ["scatter", "ring"],
+    pal: [["#fde047", "#facc15", "#1e293b", "#2563eb"], ["#2563eb", "#1e40af", "#ffffff", "#fde047"], ["#f1f5f9", "#cbd5e1", "#0f172a", "#ef4444"]],
+    fonts: [[F("Permanent"), F("Fredoka")], [F("Caveat"), F("Roboto")], [F("Anton"), F("Arial")]] },
+  { id: "winter", name: "Weihnachten & Winter", words: ["weihnacht", "advent", "nikolaus", "xmas", "christmas", "winter", "schnee", "silvester", "neujahr"],
+    icons: ["tree", "star", "dot"], layout: ["scatter", "ring"],
+    pal: [["#b91c1c", "#7f1d1d", "#ffffff", "#fde68a"], ["#166534", "#14532d", "#ffffff", "#fca5a5"], ["#1e3a8a", "#0f172a", "#ffffff", "#e0f2fe"]],
+    fonts: [[F("Lobster"), F("Roboto")], [F("Pacifico"), F("Arial")]] },
+  { id: "ostern", name: "Ostern", words: ["ostern", "oster", "hase", "easter"],
+    icons: ["egg", "egg", "dot"], layout: ["scatter"],
+    pal: [["#fef9c3", "#bbf7d0", "#065f46", "#f9a8d4"], ["#e9d5ff", "#fbcfe8", "#581c87", "#86efac"]],
+    fonts: [[F("Fredoka"), F("Caveat")]] },
+  { id: "technik", name: "Technik & Computer", words: ["computer", "technik", "code", "it", "digital", "informatik", "gamer", "gaming", "robot", "ki", "ai", "nerd", "binär", "hack"],
+    icons: ["bin", "bolt", "dot"], layout: ["scatter", "ring"],
+    pal: [["#0f172a", "#064e3b", "#4ade80", "#22c55e"], ["#020617", "#1e1b4b", "#67e8f9", "#22d3ee"]],
+    fonts: [[F("Orbitron"), F("Computer")], [F("Computer"), F("Orbitron")]] },
+  { id: "tiere", name: "Tiere", words: ["tier", "hund", "katze", "pfote", "zoo", "pferd", "haustier"],
+    icons: ["paw", "heart", "paw"], layout: ["scatter"],
+    pal: [["#fed7aa", "#fdba74", "#7c2d12", "#9a3412"], ["#0ea5e9", "#0369a1", "#ffffff", "#bae6fd"]],
+    fonts: [[F("Fredoka"), F("Arial")], [F("Bangers"), F("Fredoka")]] },
+  { id: "allgemein", name: "Allgemein / bunt", words: [],
+    icons: ["star", "dot", "ring"], layout: ["burst", "scatter", "ring", "confetti"],
+    pal: [["#4f46e5", "#7c3aed", "#ffffff", "#c4b5fd"], ["#f97316", "#db2777", "#ffffff", "#fde68a"], ["#0ea5e9", "#22c55e", "#ffffff", "#ecfeff"], ["#111827", "#334155", "#ffffff", "#facc15"], ["#fef3c7", "#fde68a", "#1e293b", "#f97316"]],
+    fonts: [[F("Anton"), F("Arial")], [F("Bebas"), F("Roboto")], [F("Fredoka"), F("Fredoka")], [F("Bangers"), F("Arial")]] }
+];
+$("#genTheme").innerHTML += THEMES.map(t => `<option value="${t.id}">${t.name}</option>`).join("");
+
+function detectTheme(txt) {
+  const t = txt.toLowerCase(); let best = THEMES[THEMES.length - 1], score = 0;
+  THEMES.forEach(th => { const sc = th.words.reduce((n, w) => n + (t.includes(w) ? 1 : 0), 0); if (sc > score) { score = sc; best = th; } });
+  return best;
+}
+function rng(seed) { let x = (Math.imul(seed ^ 0x9e3779b9, 0x85ebca6b) ^ (seed >>> 13)) >>> 0 || 1; return () => { x ^= x << 13; x >>>= 0; x ^= x >> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; }; }
+function lum(hex) { const n = parseInt(hex.slice(1), 16), c = [n >> 16, n >> 8 & 255, n & 255].map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; }
+
+// Motiv als SVG (600×600). Die Mitte bleibt ruhig, Symbole liegen am Rand.
+function makeMotif(th, pal, layout, R) {
+  const [bg1, bg2, , acc] = pal, iconsSvg = []; const C0 = 300;
+  const icon = (name, x, y, size, rot, col, op) => `<g transform="translate(${r2(x - size / 2)} ${r2(y - size / 2)}) rotate(${r2(rot)} ${size / 2} ${size / 2}) scale(${r2(size / 100)})" opacity="${op}">${ICONS[name](col)}</g>`;
+  let bgPart = "";
+  if (layout === "burst") {
+    const n = 18; bgPart = [...Array(n)].map((_, i) => { const a1 = (i * 2) * Math.PI / n / 2 * 2, a2 = a1 + Math.PI / n; return `<path d="M300,300 L${r2(300 + 500 * Math.cos(a1))},${r2(300 + 500 * Math.sin(a1))} L${r2(300 + 500 * Math.cos(a2))},${r2(300 + 500 * Math.sin(a2))}Z" fill="${acc}" opacity=".16"/>`; }).join("");
+    for (let i = 0; i < 6; i++) { const a = R() * Math.PI * 2, r = 215 + R() * 60; iconsSvg.push(icon(th.icons[i % th.icons.length], C0 + r * Math.cos(a), C0 + r * Math.sin(a), 40 + R() * 30, R() * 360, acc, .55)); }
+  } else if (layout === "ring") {
+    const n = 12 + Math.floor(R() * 5), off = R() * 360;
+    for (let i = 0; i < n; i++) { const a = (off + i * 360 / n) * Math.PI / 180, r = 240; iconsSvg.push(icon(th.icons[i % th.icons.length], C0 + r * Math.cos(a), C0 + r * Math.sin(a), 46, (off + i * 360 / n) + 90, acc, .5)); }
+  } else if (layout === "confetti") {
+    const cols = [acc, pal[2], "#ffffff", "#fde047", "#f472b6", "#60a5fa"];
+    for (let i = 0; i < 70; i++) { const a = R() * Math.PI * 2, r = 150 + R() * 140, x = C0 + r * Math.cos(a), y = C0 + r * Math.sin(a), c = cols[i % cols.length];
+      iconsSvg.push(R() < .5 ? `<rect x="${r2(x)}" y="${r2(y)}" width="${r2(8 + R() * 10)}" height="${r2(4 + R() * 6)}" fill="${c}" opacity=".75" transform="rotate(${r2(R() * 180)} ${r2(x)} ${r2(y)})"/>` : `<circle cx="${r2(x)}" cy="${r2(y)}" r="${r2(3 + R() * 6)}" fill="${c}" opacity=".7"/>`); }
+    for (let i = 0; i < 4; i++) { const a = R() * Math.PI * 2, r = 230; iconsSvg.push(icon(th.icons[i % th.icons.length], C0 + r * Math.cos(a), C0 + r * Math.sin(a), 56, R() * 40 - 20, acc, .6)); }
+  } else { // scatter
+    for (let i = 0; i < 16; i++) { const a = R() * Math.PI * 2, r = 165 + R() * 125; iconsSvg.push(icon(th.icons[i % th.icons.length], C0 + r * Math.cos(a), C0 + r * Math.sin(a), 30 + R() * 34, R() * 360, acc, .35 + R() * .3)); }
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">${bgPart}${iconsSvg.join("")}</svg>`;
+  return "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg)));
+}
+
+// Mitteltext auf max. 2 Wörter bzw. ~12 Zeichen pro Zeile umbrechen (kleine Buttons)
+function wrapMiddle(t, size) {
+  if (t.includes("\n")) return t;
+  const maxC = size <= 32 ? 11 : size <= 50 ? 16 : 22, words = t.split(/\s+/).filter(Boolean);
+  if (t.length <= maxC || words.length < 2) return t;
+  let best = 1, bestD = 1e9;
+  for (let i = 1; i < words.length; i++) { const d = Math.abs(words.slice(0, i).join(" ").length - words.slice(i).join(" ").length); if (d < bestD) { bestD = d; best = i; } }
+  return words.slice(0, best).join(" ") + "\n" + words.slice(best).join(" ");
+}
+
+let autoCtx = null;   // { input, seed, backup }
+function designFrom(inp, seed, k = 0) {
+  const R = rng(seed); for (let i = 0; i < 5; i++) R();
+  const th = inp.theme === "auto" ? detectTheme(inp.top + " " + inp.middle + " " + inp.bottom) : THEMES.find(t => t.id === inp.theme);
+  const pick = (arr, step) => arr[(Math.floor(R() * arr.length) + k * step) % arr.length];
+  const pal = pick(th.pal, 1), fonts = pick(th.fonts, 1), layout = pick(th.layout, 1);
+  const [bg1, bg2, txt] = pal;
+  const bgType = R() < .5 ? "radial" : "linear";
+  const dark = (lum(bg1) + lum(bg2)) / 2 < .35;
+  const len = s => Math.max(0, ...s.split("\n").map(l => [...l].length));
+  const d = {
+    ...DEFAULTS,
+    buttonSize: String(inp.size), count: 5, view: "edit",
+    bgType, bgColor1: bgType === "radial" ? bg2 === "#ffffff" ? bg1 : bg1 : bg1, bgColor2: bg2, bgAngle: Math.floor(R() * 4) * 45 + 135,
+    imgAR: 1, imgFit: "slice", imgOpacity: 100, imgScale: 1, imgRotate: 0, imgX: 0, imgY: 0,
+    gColorType: "solid", gColor1: txt, gOutline: !dark && lum(txt) > .5, gOutlineColor: dark ? "#000000" : "#ffffff", gOutlineWidth: 3,
+    topText: inp.top, topFont: fonts[1], topAuto: true, topSpan: clamp(len(inp.top) * 13 + 30, 60, 170), topInset: 5, topSpacing: 1,
+    middleText: wrapMiddle(inp.middle, inp.size), middleFont: fonts[0], middleAuto: true, middleW: 175, middleX: 0, middleY: 0, middleRotate: 0,
+    bottomText: inp.bottom, bottomFont: fonts[1], bottomAuto: true, bottomSpan: clamp(len(inp.bottom) * 13 + 30, 60, 150), bottomInset: 5, bottomSpacing: 1, bottomUpright: true
+  };
+  // Mitteltext etwas schmaler, wenn Bögen belegt sind (mehr Luft)
+  if (inp.top || inp.bottom) d.middleW = 160;
+  const RM = autoCtx && autoCtx.motifSeed ? rng(autoCtx.motifSeed) : R;
+  const lay = autoCtx && autoCtx.motifSeed ? th.layout[Math.floor(RM() * th.layout.length)] : layout;
+  return { d, img: makeMotif(th, pal, lay, RM), theme: th.name, th, pal };
+}
+function autoCreate() {
+  const inp = { top: $("#genTop").value.trim(), middle: $("#genMiddle").value.trim(), bottom: $("#genBottom").value.trim(), size: parseInt($("#genSize").value), theme: $("#genTheme").value };
+  if (!inp.top && !inp.middle && !inp.bottom) { toast("Bitte mindestens einen Text eingeben"); return; }
+  if (!autoCtx) autoCtx = { backup: { ...state } };
+  autoCtx.input = inp; autoCtx.seed = (Date.now() & 0xffff) + 1; autoCtx.k = 0; autoCtx.motifSeed = 0; autoCtx.imgOverride = null;
+  applyAuto(); closeGen(); $("#prevModal").classList.remove("hidden");
+}
+function applyAuto() {
+  const { d, img, theme, th, pal } = designFrom(autoCtx.input, autoCtx.seed, autoCtx.k);
+  const items = state.sheetItems || [];
+  state = { ...d, sheetItems: items }; sel = null;
+  if (autoCtx.imgOverride !== null) { setImage(autoCtx.imgOverride.img); Object.assign(state, autoCtx.imgOverride.st); }
+  else setImage(img);
+  autoCtx.th = th; autoCtx.pal = pal; autoCtx.theme = theme;
+  state.view = "edit"; render(); refreshPreview();
+}
+function refreshPreview() {
+  $("#prevSvg").innerHTML = buildButton("q", "preview");
+  $("#prevInfo").textContent = `Thema: ${autoCtx ? autoCtx.theme : ""} · ${state.buttonSize} mm`;
+  refreshPreviewSheet();
+}
+function autoVariant() { autoCtx.k++; autoCtx.motifSeed = 0; autoCtx.imgOverride = null; applyAuto(); }
+function autoNewMotif() { autoCtx.motifSeed = (Date.now() & 0xffffff) + 7; autoCtx.imgOverride = null; applyAuto(); }
+function autoNoImage() { autoCtx.imgOverride = { img: "", st: {} }; applyAuto(); }
+function acceptAuto(toEditor) { $("#prevModal").classList.add("hidden"); autoCtx = null; if (toEditor) { sel = "middle"; render(); $("#previewSvg").scrollIntoView({ behavior: "smooth", block: "center" }); } if (location.hash) history.replaceState(null, "", location.pathname + location.search); }
+function discardAuto() {
+  if (autoCtx && autoCtx.backup) { const b = autoCtx.backup, items = state.sheetItems || []; state = { ...b, sheetItems: items }; const im = b.img; state.img = ""; setImage(im); render(); }
+  autoCtx = null; $("#prevModal").classList.add("hidden");
+}
+// KI-Motiv: Claude zeichnet ein SVG (nur in der Online-Ansicht mit Freigabe)
+let sampleFn = null, downloadsNS = null;
+(async () => {
+  try { if (window.claude && claude.use) {
+    sampleFn = await claude.use("sample"); if (sampleFn) $("#aiMotifBtn").classList.remove("hidden");
+    downloadsNS = await claude.use("downloads");
+  } } catch (e) {}
+})();
+function cleanSVG(txt) {
+  const m = txt.match(/<svg[\s\S]*<\/svg>/i); if (!m) return null;
+  const doc = new DOMParser().parseFromString(m[0], "image/svg+xml");
+  const root = doc.documentElement; if (!root || root.nodeName.toLowerCase() !== "svg" || doc.querySelector("parsererror")) return null;
+  doc.querySelectorAll("script, foreignObject, image, a, iframe, style").forEach(n => n.remove());
+  doc.querySelectorAll("*").forEach(el => [...el.attributes].forEach(at => {
+    const n = at.name.toLowerCase();
+    if (n.startsWith("on") || ((n === "href" || n === "xlink:href") && !at.value.startsWith("#"))) el.removeAttribute(at.name);
+  }));
+  root.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  if (!root.getAttribute("viewBox")) root.setAttribute("viewBox", "0 0 600 600");
+  root.setAttribute("width", "600"); root.setAttribute("height", "600");
+  return "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(new XMLSerializer().serializeToString(root))));
+}
+let aiBusy = false;
+async function aiMotif() {
+  if (!autoCtx) return;
+  await aiMotifRaw(img => {
+    autoCtx.imgOverride = { img, st: { imgAR: 1, imgScale: 1, imgRotate: 0, imgX: 0, imgY: 0, imgOpacity: 100, imgFit: "slice" } };
+    applyAuto();
+  });
+}
+async function aiMotifRaw(onImg) {
+  if (!sampleFn || aiBusy || !autoCtx) return;
+  aiBusy = true; const btn = $("#aiMotifBtn"), old = btn.textContent; btn.textContent = "🤖 Zeichne …"; toast("🤖 Claude zeichnet ein Motiv …");
+  const inp = autoCtx.input, pal = autoCtx.pal || [];
+  const prompt = `Zeichne ein dekoratives Hintergrundmotiv als SVG für einen runden Anstecker-Button.
+Texte auf dem Button: oben "${inp.top}", Mitte "${inp.middle}", unten "${inp.bottom}". Thema: ${autoCtx.theme}.
+Farben: Hintergrund ${pal[0]} bis ${pal[1]}, Akzent ${pal[3]}, Schrift ${pal[2]}.
+Anforderungen:
+- viewBox="0 0 600 600", Kreis-Mitte 300,300. Der Button zeigt den Kreis mit Radius 290.
+- Fülle die ganze Fläche (eigener Hintergrund in den genannten Farben, z. B. Verlauf).
+- Die Mitte (Kreis Radius 150 um 300,300) muss ruhig und hell/dunkel genug für gut lesbare Schrift bleiben; Motive vor allem im Randbereich.
+- Flache, klare Formen passend zum Thema. KEINE Schrift, keine Buchstaben, keine Bilder, keine Links, keine Skripte, keine Marken oder bekannten Figuren.
+Antworte ausschließlich mit dem vollständigen <svg>…</svg>-Code.`;
+  try {
+    const res = await sampleFn(prompt, { modelTier: "default" });
+    const img = cleanSVG(res.text || "");
+    if (!img) throw { message: "Kein gültiges SVG erhalten" };
+    onImg(img); toast("🤖 KI-Motiv eingefügt");
+  } catch (e) {
+    if (e && e.code === "not_granted") { btn.classList.add("hidden"); toast("KI-Motiv nicht freigegeben"); }
+    else toast("KI-Motiv fehlgeschlagen: " + ((e && e.message) || "unbekannter Fehler"));
+  } finally { aiBusy = false; btn.textContent = old; }
+}
+
+function backToMask() { $("#prevModal").classList.add("hidden"); $("#genModal").classList.remove("hidden"); }
+
+// ================= Tools: KI-Button-Generator =================
+$$("#sideTabs button").forEach(b => b.addEventListener("click", () => {
+  $$("#sideTabs button").forEach(x => x.classList.toggle("on", x === b));
+  $("#tab-settings").classList.toggle("hidden", b.dataset.tab !== "settings");
+  $("#tab-tools").classList.toggle("hidden", b.dataset.tab !== "tools");
+}));
+
+const FULL_PROMPT = `Du bist mein Button-Designer. Ich gebe dir nur Texte, du erstellst daraus automatisch ein fertiges Button-Projekt für mein Tool „DIY-Button-StudioPro“ (liegt in Google Drive unter Apps/BUTTON).
+
+MEINE EINGABE
+Oben: {TOP}
+Mitte: {MIDDLE}
+Unten: {BOTTOM}
+Größe: {SIZE} mm
+Varianten: {VAR}{HINT}
+
+DEINE AUFGABE
+1. Thema erkennen: Leite aus den Texten Thema und Stimmung ab.
+2. Farbschema: 2–3 harmonische Farben passend zum Thema. Hintergrund einfarbig, linear oder radial. Textfarbe mit starkem Kontrast (mind. WCAG-AA); bei unruhigem Motiv Kontur um die Schrift.
+3. Hintergrundbild: Zeichne selbst ein schlichtes, thematisch passendes SVG-Motiv (600×600, flache Formen, keine Fotos, keine Marken/Logos/bekannten Figuren), eingebettet als data:image/svg+xml;base64. Lesbarkeit geht vor: dezent (Deckkraft 25–50 %) oder ruhige Mitte.
+4. Schrift: je Feld eine passende Schrift aus der Liste. Auto-Größe an. Kurzer Mitteltext = breites Feld (middleW 150–190), Bogentexte 100–160°. Bei 25 mm höchstens 2 Wörter pro Zeile im Mitteltext.
+5. Ausgabe: je Variante eine Datei „Button_<Mitteltext-kurz>_<Datum>.json“ im Format unten, Vorschaubild, wenn möglich in Google Drive unter Apps/BUTTON speichern, 2–3 Sätze zu Thema, Farben, Schriften. Keine Rückfragen.
+
+FESTE WERTE: count 5, printCutLine true, buttonSize als Text, view "edit", imgFit "slice", imgScale ≥ 1.
+
+JSON-FORMAT (Schlüssel genau so):
+{"app":"button-studio-pro-8","buttonSize":"{SIZE}","count":5,"printCutLine":true,"view":"edit",
+"bgType":"solid|linear|radial","bgColor1":"#rrggbb","bgColor2":"#rrggbb","bgAngle":135,
+"img":"data:image/svg+xml;base64,...","imgAR":1,"imgFit":"slice","imgOpacity":40,"imgScale":1,"imgRotate":0,"imgX":0,"imgY":0,
+"gColorType":"solid|linear|radial","gColor1":"#rrggbb","gColor2":"#rrggbb","gColor3":"#rrggbb","gUse3":false,"gAngle":90,
+"gOutline":false,"gOutlineColor":"#ffffff","gOutlineWidth":4,"gBgOn":false,"gFrameOn":false,
+"topText":"","topFont":"<Schrift>","topAuto":true,"topSpan":130,"topInset":5,"topSpacing":1,
+"middleText":"","middleFont":"<Schrift>","middleAuto":true,"middleW":160,"middleX":0,"middleY":0,"middleRotate":0,
+"bottomText":"","bottomFont":"<Schrift>","bottomAuto":true,"bottomSpan":110,"bottomInset":5,"bottomSpacing":1,"bottomUpright":true}
+Optional je Feld (top/middle/bottom): "<feld>Mode":"own" plus <feld>Color1, <feld>Outline, <feld>BgOn, <feld>BgColor, <feld>BgOpacity, <feld>FrameOn, <feld>FrameColor, <feld>FrameWidth.
+
+ERLAUBTE SCHRIFTEN (Wert exakt übernehmen):
+${FONTS.map(f => f[0]).join("\n")}`;
+
+function fullPrompt(v) {
+  return FULL_PROMPT.replace(/\{TOP\}/g, v.top || "(leer)").replace(/\{MIDDLE\}/g, v.middle || "(leer)").replace(/\{BOTTOM\}/g, v.bottom || "(leer)")
+    .replace(/\{SIZE\}/g, v.size).replace(/\{VAR\}/g, v.variants > 1 ? v.variants + " (Farbe/Motiv/Schrift variieren)" : "1")
+    .replace(/\{HINT\}/g, v.hint ? "\nWunsch zu Thema/Stil: " + v.hint : "");
+}
+function shortPrompt(v) {
+  const q = t => t ? `„${t.replace(/\n/g, " / ")}“` : "leer";
+  return `Erstelle mit dem Skill diy-button-generator einen Button: oben ${q(v.top)}, Mitte ${q(v.middle)}, unten ${q(v.bottom)}, Größe ${v.size} mm` +
+    (v.variants > 1 ? `, ${v.variants} Varianten` : "") + (v.hint ? `. Stil: ${v.hint}` : "") + ".";
+}
+function genValues() {
+  return { top: $("#genTop").value.trim(), middle: $("#genMiddle").value.trim(), bottom: $("#genBottom").value.trim(),
+           size: $("#genSize").value, variants: 1, hint: "" };
+}
+function updateGen() {
+  const v = genValues(), mode = ($("input[name=genMode]:checked") || {}).value;
+  const txt = mode === "full" ? fullPrompt(v) : shortPrompt(v);
+  $("#genOut").value = txt;
+  const url = "https://claude.ai/new?q=" + encodeURIComponent(txt);
+  $("#genOpen").href = url.length < 7500 ? url : "https://claude.ai/new";
+}
+function fillGenFromDesign() {
+  $("#genTop").value = state.topText; $("#genMiddle").value = state.middleText; $("#genBottom").value = state.bottomText;
+  $("#genSize").value = state.buttonSize; updateGen();
+}
+function openGen() {
+  $("#genSize").value = state.buttonSize || "25";
+  updateGen(); $("#genModal").classList.remove("hidden");
+  setTimeout(() => { $("#genTop").focus(); }, 80);
+}
+function closeGen() { $("#genModal").classList.add("hidden"); }
+["#genTop", "#genMiddle", "#genBottom", "#genSize"].forEach(id => { $(id).addEventListener("input", updateGen); $(id).addEventListener("change", updateGen); });
+$$("input[name=genMode]").forEach(r => r.addEventListener("change", updateGen));
+["#genTop", "#genMiddle", "#genBottom"].forEach(id => $(id).addEventListener("keydown", e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); autoCreate(); } }));
+document.addEventListener("keydown", e => { if (e.key === "Escape") { if (!$("#genModal").classList.contains("hidden")) closeGen(); else if (!$("#prevModal").classList.contains("hidden")) discardAuto(); } });
+
+async function copyText(t, msg) {
+  try { await navigator.clipboard.writeText(t); toast(msg || "Kopiert"); return; } catch (_) {}
+  const ta = document.createElement("textarea"); ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); toast(msg || "Kopiert"); } catch (_) { toast("Kopieren nicht möglich – Text bitte markieren und kopieren"); }
+  ta.remove();
+}
+
+// ================= Start =================
+$$("[data-style]").forEach(el => el.innerHTML = styleEditor(el.dataset.style));
+bindInputs();
+initFontPickers();
+restore();
+clampCount();
+render();
+// Direktaufruf der KI-Maske per Link …#ki-generator (z. B. Verknüpfung auf dem Startbildschirm)
+function checkHash() { if (location.hash === "#ki-generator" || location.hash === "#auto-button") openGen(); }
+window.addEventListener("hashchange", checkHash);
+checkHash();
+if (document.fonts) { document.fonts.ready.then(render); document.fonts.addEventListener && document.fonts.addEventListener("loadingdone", render); }
+</script>
+</body>
+</html>
