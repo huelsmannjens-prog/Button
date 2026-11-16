@@ -216,19 +216,16 @@ details.sub-box>div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
       <span><i style="color:#1f9d55"></i>Sicherer Bereich für Text</span>
     </div>
     <p class="credit" id="credit"></p>
-    <div class="row" style="width:100%">
-      <button class="btn primary" id="exportPng">PNG speichern (300 dpi)</button>
-      <button class="btn" id="exportGuides">PNG mit Hilfslinien</button>
-    </div>
-    <p class="status" id="exportStatus"></p>
     <div class="out" id="outBox">
       <h2 class="ph">Ausgabe</h2>
-      <div class="out-row"><button class="btn" id="pdfSheet">🖨 PDF: ganze Seite Buttons</button>
-        <label class="check"><input type="checkbox" id="pdfCutLine" checked> Schnittlinie</label></div>
-      <div class="out-row"><a class="btn" id="toPro" href="../studiopro/" target="_blank" rel="noopener" style="text-decoration:none">➡ Entwurf in StudioPro öffnen (5×)</a><button class="btn" id="proJson" style="flex:0 1 auto;min-width:0">💾 JSON speichern</button></div>
-      <label class="check"><input type="checkbox" id="proWithText" checked> Texte im StudioPro bearbeitbar übernehmen (sonst als Teil des Bildes)</label>
-      <div class="out-row"><button class="btn" id="pdfSticker">🏷 Aufkleber-PDF (4 × 5 auf A4)</button>
+      <button class="btn primary" id="exportPng">🖼 PNG speichern (300 dpi)</button>
+      <button class="btn" id="pdfSheet">🖨 Buttons als PDF (ganze Seite)</button>
+      <div class="out-row"><button class="btn" id="pdfSticker">🏷 Aufkleber-Druckvorlage als PDF (4 × 5)</button>
         <label class="check" style="gap:6px">Form <select id="stickerShape" style="width:auto"><option value="round">Rund</option><option value="square">Eckig</option></select></label></div>
+      <label class="check"><input type="checkbox" id="cutMarks" checked> Mit Schnittmarken</label>
+      <label class="check"><input type="checkbox" id="sendPro" checked> Entwurf als Vorlage an StudioPro senden (anonym)</label>
+      <a href="../studiopro/" target="_blank" rel="noopener" class="note" style="color:var(--accent)">➡ Zum DIY-Button-StudioPro</a>
+      <p class="status" id="exportStatus"></p>
       <p class="status" id="outStatus"></p>
     </div>
   </section>
@@ -661,15 +658,15 @@ document.addEventListener("paste",e=>{ const it=[...(e.clipboardData?.items||[])
 /* ---------- Export ---------- */
 async function exportPng(guides){
   const {cut, face}=geom(); const S=Math.round(cut/25.4*300);
-  const c=document.createElement("canvas"); c.width=c.height=S; render(c.getContext("2d"), S, guides);
+  const c=document.createElement("canvas"); c.width=c.height=S; const cg=c.getContext("2d"); render(cg, S, false);
+  if (on("cutMarks")){ cg.strokeStyle="#888"; cg.lineWidth=Math.max(1,S/600); cg.beginPath(); cg.arc(S/2,S/2,S/2-cg.lineWidth/2,0,Math.PI*2); cg.stroke(); }
   let blob; try{ blob=await new Promise((r,j)=>c.toBlob(b=>b?r(b):j(new Error("leer")),"image/png")); }
   catch(e){ $("exportStatus").textContent="Export blockiert: Das Bild stammt von einer Seite ohne Freigabe. Lade es herunter und dann über ‚Hochladen‘ wieder hinein."; return; }
   const name=`button-${face}mm-zuschnitt-${cut}mm${guides?"-hilfslinien":""}.png`;
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.append(a); a.click(); a.remove();
   $("exportStatus").textContent=`${name} (${S}×${S} px, 300 dpi)`;
 }
-$("exportPng").onclick=()=>exportPng(false);
-$("exportGuides").onclick=()=>exportPng(true);
+$("exportPng").onclick=()=>{ exportPng(false); sendTemplate(); };
 
 /* ---------- Ausgabe: PDF-Bogen, StudioPro, Aufkleber ---------- */
 // Am Handy die Ausgabe unter die Texte verschieben, damit die angeheftete Vorschau klein bleibt
@@ -683,7 +680,7 @@ async function jspdf(){
   return new window.jspdf.jsPDF({unit:"mm", format:"a4", orientation:"portrait"});
 }
 const PAGE = {w:210, h:297};
-$("pdfSheet").onclick = async ()=>{
+$("pdfSheet").onclick = async ()=>{ sendTemplate();
   const st=$("outStatus"); st.textContent="PDF wird erstellt …";
   try{
     const {face, cut} = geom(), margin=5, gap=1;
@@ -694,13 +691,13 @@ $("pdfSheet").onclick = async ()=>{
     for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
       const x=x0+c*(cut+gap), y=y0+r*(cut+gap);
       doc.addImage(img,"PNG",x,y,cut,cut,"btn","FAST");
-      if (on("pdfCutLine")){ doc.setDrawColor(150); doc.setLineWidth(0.15); doc.circle(x+cut/2,y+cut/2,cut/2,"S"); }
+      if (on("cutMarks")){ doc.setDrawColor(150); doc.setLineWidth(0.15); doc.circle(x+cut/2,y+cut/2,cut/2,"S"); }
     }
     doc.save(`buttons-${face}mm-${cols*rows}stueck.pdf`);
     st.textContent=`PDF mit ${cols*rows} Buttons (${cols} × ${rows}, Zuschnitt ${cut} mm). Mit 100 % / „Tatsächliche Größe“ drucken.`;
   }catch(e){ st.textContent=e.message||String(e); }
 };
-$("pdfSticker").onclick = async ()=>{
+$("pdfSticker").onclick = async ()=>{ sendTemplate();
   const st=$("outStatus"); st.textContent="PDF wird erstellt …";
   try{
     const margin=10, gapMm = 25.4/72; // 1 pt Abstand als Schnittkante
@@ -709,17 +706,30 @@ $("pdfSticker").onclick = async ()=>{
     const square = v("stickerShape")==="square";
     const img=renderDataURL(Math.round(size/25.4*300), {viewMm: geom().face, square});
     const doc=await jspdf();
-    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) doc.addImage(img,"PNG",x0+c*(size+gapMm),y0+r*(size+gapMm),size,size,"stk","FAST");
+    doc.setDrawColor(150); doc.setLineWidth(0.1);
+    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){ const x=x0+c*(size+gapMm), y=y0+r*(size+gapMm);
+      doc.addImage(img,"PNG",x,y,size,size,"stk","FAST");
+      if (on("cutMarks")) square ? doc.rect(x,y,size,size,"S") : doc.circle(x+size/2,y+size/2,size/2,"S"); }
     doc.save(`aufkleber-4x5-${square?"eckig":"rund"}.pdf`);
     st.textContent=`Aufkleber-PDF: 20 Stück à ${size.toFixed(1).replace(".",",")} mm, ${square?"eckig":"rund"}, Rand 10 mm, 1 pt Abstand.`;
   }catch(e){ st.textContent=e.message||String(e); }
 };
+// Anonyme Vorlage an StudioPro: geht im Hintergrund an eine Sammelstelle (wird noch eingerichtet).
+// Es werden nur Entwurfsdaten übertragen, keine Namen, Konten oder Geräteinfos.
+const TEMPLATE_ENDPOINT = "";
+function sendTemplate(){
+  if (!on("sendPro")) return;
+  const proj = proProject();
+  if (TEMPLATE_ENDPOINT){ try{ fetch(TEMPLATE_ENDPOINT,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(proj)}).catch(()=>{}); }catch(e){} return; }
+  // Bis die Sammelstelle steht: Vorlage auf diesem Gerät für StudioPro vormerken (nichts wird hochgeladen)
+  try{ const q=JSON.parse(localStorage.getItem("bildstudioQueue")||"[]"); q.push(proj); localStorage.setItem("bildstudioQueue", JSON.stringify(q.slice(-6))); }catch(e){}
+}
 // StudioPro-Projekt (Format "button-studio-pro-8"): Motiv als Bild, Texte wahlweise als bearbeitbare Texte
 const PRO_FONT = {"Archivo Black":"Impact, 'Arial Black', sans-serif","Inter:800":"Arial, Helvetica, sans-serif","Bebas Neue":"'Bebas Neue', Impact, sans-serif",
   "Anton":"'Anton', Impact, sans-serif","Saira Stencil One":"'Saira Stencil One', Impact, sans-serif","Bangers":"'Bangers', Impact, cursive",
   "Permanent Marker":"'Permanent Marker', cursive","Pacifico":"'Pacifico', cursive","Caveat":"'Caveat', cursive","Bricolage Grotesque:700":"Arial, Helvetica, sans-serif"};
 function proProject(){
-  const {face, cut}=geom(), SIZES={"25":37,"32":44,"37":49,"50":65,"56":68,"75":87}, bs=String(face), editable=on("proWithText");
+  const {face, cut}=geom(), SIZES={"25":37,"32":44,"37":49,"50":65,"56":68,"75":87}, bs=String(face), editable=true;
   const u = 290/cut, ptU = mm => +(mm*u).toFixed(1), ptToMm = pt => pt/PT_PER_MM;
   const P = { app:"button-studio-pro-8", buttonSize: SIZES[bs]?bs:"25", customCut: SIZES[bs]===cut?"":String(cut), count:5, printCutLine:true, view:"edit",
     bgType:"solid", bgColor1:v("bgColor"), img: renderDataURL(Math.min(1400, Math.round(cut/25.4*300)), {noText: editable}),
@@ -733,18 +743,7 @@ function proProject(){
   }
   return P;
 }
-$("proJson").onclick = ()=>{
-  const json = JSON.stringify(proProject(), null, 1), name = "button_projekt_" + new Date().toISOString().slice(0,10) + ".json";
-  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([json],{type:"application/json"})); a.download=name; document.body.append(a); a.click(); a.remove();
-  $("outStatus").textContent = name + " gespeichert. Im StudioPro über 📂 Laden öffnen.";
-};
 // Link "Entwurf in StudioPro öffnen": Entwurf erst beim Klick übergeben, dann öffnet der Link StudioPro
-$("toPro").addEventListener("click", e=>{
-  const st=$("outStatus");
-  // Übergabe nur im eigenen Browser; StudioPro löscht sie sofort nach dem Öffnen. Nichts wird hochgeladen.
-  try{ localStorage.setItem("bildstudioHandoff", JSON.stringify({v:2, project: proProject()})); st.textContent="Entwurf übergeben – StudioPro öffnet sich in einem neuen Tab."; }
-  catch(err){ e.preventDefault(); st.textContent="Übergabe ging nicht: Der Browser-Speicher ist voll oder gesperrt. Nimm stattdessen „JSON speichern“."; }
-});
 
 syncUi(); draw();
 })();

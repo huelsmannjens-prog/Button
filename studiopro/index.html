@@ -2120,6 +2120,22 @@ function takeHandoff() {
   setImage(state.img); clampCount(); sel = null; render();
   if (state.sheetItems.length) addToSheet(5); else toast("Vorlage aus dem Bildstudio übernommen – 5 Buttons auf dem Bogen");
 }
+// Vorgemerkte Vorlagen aus dem Bildstudio: je 5× auf die Druckbogen-Liste legen, ohne das aktuelle Design zu ändern
+function takeQueue() {
+  let q = [];
+  try { q = JSON.parse(localStorage.getItem("bildstudioQueue") || "[]"); localStorage.removeItem("bildstudioQueue"); } catch (e) {}
+  if (!q.length) return;
+  const items = state.sheetItems ? [...state.sheetItems] : []; let added = 0, skipped = 0;
+  for (const proj of q) {
+    const d = { ...DEFAULTS, ...migrate(proj), view: "edit" }; delete d.sheetItems;
+    if (items.length && items[0].design.buttonSize !== d.buttonSize) { skipped++; continue; }
+    const max = withState(d, () => layout().max), used = items.reduce((a, it) => a + it.count, 0);
+    if (used >= max) { skipped++; continue; }
+    items.push({ design: d, count: Math.min(5, max - used) }); added++;
+  }
+  state.sheetItems = items;
+  if (added) setTimeout(() => toast(`➕ ${added} Vorlage(n) aus dem Bildstudio je 5× auf den Druckbogen gelegt` + (skipped ? ` (${skipped} passten nicht)` : "")), 800);
+}
 // ================= Start =================
 $$("[data-style]").forEach(el => el.innerHTML = styleEditor(el.dataset.style));
 bindInputs();
@@ -2127,6 +2143,7 @@ initFontPickers();
 restore();
 clampCount();
 takeHandoff();
+takeQueue();
 render();
 // Direktaufruf der KI-Maske per Link …#ki-generator (z. B. Verknüpfung auf dem Startbildschirm)
 function checkHash() { if (location.hash === "#ki-generator" || location.hash === "#auto-button") openGen(); }
