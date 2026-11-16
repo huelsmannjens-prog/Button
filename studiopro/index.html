@@ -76,6 +76,7 @@
   .fp-opt .s { display:block; font-size:1.15rem; font-weight:700; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .fp-opt .n { display:block; font-size:.65rem; color:#64748b; font-family: Arial, sans-serif; }
 </style>
+<script src="../supabase-config.js"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
@@ -91,6 +92,7 @@
     <label title="Projekt laden" class="hbtn cursor-pointer">📂<span class="hidden md:inline"> Laden</span>
       <input type="file" id="loadProjectInput" accept=".json,application/json" class="hidden">
     </label>
+    <button onclick="openInbox()" title="Eingesandte Vorlagen aus dem Bildstudio abrufen" class="hbtn">📥<span class="hidden md:inline"> Vorlagen</span></button>
     <button onclick="resetAll()" title="Neues Design" class="hbtn">✚<span class="hidden md:inline"> Neu</span></button>
     <button onclick="doPrint()" title="Drucken / PDF (Strg+P)" class="hbtn !bg-indigo-600 hover:!bg-indigo-500 font-semibold">🖨 PDF<span class="hidden md:inline"> drucken</span></button>
   </div>
@@ -511,6 +513,23 @@
         </ol>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ============ Eingesandte Vorlagen (Sammelstelle) ============ -->
+<div id="inboxModal" class="no-print hidden fixed inset-0 z-[85] bg-slate-900/60 flex items-end sm:items-center justify-center p-0 sm:p-4" onclick="if(event.target===this)closeInbox()">
+  <div class="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 space-y-3" style="padding-bottom:max(1.25rem, env(safe-area-inset-bottom))">
+    <div class="flex justify-between items-center">
+      <h3 class="text-base font-bold text-slate-800">📥 Eingesandte Vorlagen</h3>
+      <button onclick="closeInbox()" class="ubtn" title="Schließen">✕</button>
+    </div>
+    <p class="text-xs text-slate-500">Entwürfe, die im Bildstudio anonym gesendet wurden. Beim Abrufen kommt jede Vorlage 5× auf die Druckbogen-Liste und wird danach aus der Sammelstelle gelöscht.</p>
+    <div id="inboxLogin" class="space-y-2">
+      <input id="inboxEmail" type="email" autocomplete="username" placeholder="E-Mail" class="inp">
+      <input id="inboxPw" type="password" autocomplete="current-password" placeholder="Passwort" class="inp">
+    </div>
+    <button onclick="fetchInbox()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg py-2.5 text-sm font-semibold">Vorlagen abrufen</button>
+    <p id="inboxStatus" class="text-xs text-slate-600"></p>
   </div>
 </div>
 
@@ -2125,16 +2144,49 @@ function takeQueue() {
   let q = [];
   try { q = JSON.parse(localStorage.getItem("bildstudioQueue") || "[]"); localStorage.removeItem("bildstudioQueue"); } catch (e) {}
   if (!q.length) return;
+  const { added, skipped } = addTemplatesToSheet(q);
+  if (added) setTimeout(() => toast(`➕ ${added} Vorlage(n) aus dem Bildstudio je 5× auf den Druckbogen gelegt` + (skipped ? ` (${skipped} passten nicht)` : "")), 800);
+}
+// ================= Sammelstelle: eingesandte Vorlagen abrufen =================
+function addTemplatesToSheet(list) {
   const items = state.sheetItems ? [...state.sheetItems] : []; let added = 0, skipped = 0;
-  for (const proj of q) {
+  for (const proj of list) {
     const d = { ...DEFAULTS, ...migrate(proj), view: "edit" }; delete d.sheetItems;
     if (items.length && items[0].design.buttonSize !== d.buttonSize) { skipped++; continue; }
     const max = withState(d, () => layout().max), used = items.reduce((a, it) => a + it.count, 0);
     if (used >= max) { skipped++; continue; }
     items.push({ design: d, count: Math.min(5, max - used) }); added++;
   }
-  state.sheetItems = items;
-  if (added) setTimeout(() => toast(`➕ ${added} Vorlage(n) aus dem Bildstudio je 5× auf den Druckbogen gelegt` + (skipped ? ` (${skipped} passten nicht)` : "")), 800);
+  state.sheetItems = items; return { added, skipped };
+}
+const sbConf = () => { const c = window.BUTTON_SB || {}; return c.url && c.key ? { url: c.url.replace(/\/$/, ""), key: c.key } : null; };
+function openInbox() {
+  $("#inboxModal").classList.remove("hidden");
+  const tok = sessionStorage.getItem("sbToken");
+  $("#inboxLogin").classList.toggle("hidden", !!tok);
+  $("#inboxStatus").textContent = sbConf() ? (tok ? "Du bist angemeldet." : "Melde dich mit deinem Supabase-Konto an.") : "Die Sammelstelle ist noch nicht eingerichtet.";
+}
+function closeInbox() { $("#inboxModal").classList.add("hidden"); }
+async function fetchInbox() {
+  const c = sbConf(), st = $("#inboxStatus"); if (!c) { st.textContent = "Die Sammelstelle ist noch nicht eingerichtet."; return; }
+  try {
+    let tok = sessionStorage.getItem("sbToken");
+    if (!tok) {
+      st.textContent = "Anmeldung …";
+      const r = await fetch(c.url + "/auth/v1/token?grant_type=password", { method: "POST", headers: { apikey: c.key, "Content-Type": "application/json" }, body: JSON.stringify({ email: $("#inboxEmail").value.trim(), password: $("#inboxPw").value }) });
+      const d = await r.json(); if (!r.ok) throw new Error("Anmeldung fehlgeschlagen: " + (d.error_description || d.msg || r.status));
+      tok = d.access_token; sessionStorage.setItem("sbToken", tok); $("#inboxLogin").classList.add("hidden");
+    }
+    st.textContent = "Vorlagen werden geladen …";
+    const h = { apikey: c.key, Authorization: "Bearer " + tok };
+    const r = await fetch(c.url + "/rest/v1/templates?select=id,project&order=created_at.asc&limit=50", { headers: h });
+    if (r.status === 401) { sessionStorage.removeItem("sbToken"); $("#inboxLogin").classList.remove("hidden"); throw new Error("Anmeldung abgelaufen – bitte erneut anmelden."); }
+    const rows = await r.json(); if (!r.ok) throw new Error("Laden fehlgeschlagen.");
+    if (!rows.length) { st.textContent = "Keine neuen Vorlagen."; return; }
+    const res = addTemplatesToSheet(rows.map(x => x.project)); render(); refreshPreviewSheet();
+    await fetch(c.url + "/rest/v1/templates?id=in.(" + rows.map(x => x.id).join(",") + ")", { method: "DELETE", headers: h });
+    st.textContent = `${res.added} Vorlage(n) je 5× auf den Druckbogen gelegt` + (res.skipped ? `, ${res.skipped} passten nicht (andere Größe oder Bogen voll).` : ".");
+  } catch (e) { st.textContent = e.message || String(e); }
 }
 // ================= Start =================
 $$("[data-style]").forEach(el => el.innerHTML = styleEditor(el.dataset.style));
