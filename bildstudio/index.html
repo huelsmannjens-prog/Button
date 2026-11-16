@@ -7,11 +7,8 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#1b2230">
-</head>
-<body>
 <title>Button-Bildstudio</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Inter:wght@400;500;600&family=Bebas+Neue&family=Archivo+Black&family=Pacifico&family=Caveat:wght@700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Inter:wght@400;500;600;800&family=Bebas+Neue&family=Archivo+Black&family=Anton&family=Pacifico&family=Caveat:wght@700&family=Permanent+Marker&family=Saira+Stencil+One&family=Bangers&display=swap">
 <style>
 /* Layout: drei Spalten (Bildquelle | runde Vorschau | Bearbeiten), auf dem Handy untereinander */
 :root{
@@ -26,26 +23,25 @@
   --bg:#13161c; --panel:#1c2029; --fg:#e7eaf0; --muted:#9aa3b2; --line:#2e3441;
   --accent:#7d9cff; --accent-fg:#0d1220; --soft:#232b40; --warn:#f0a35a; color-scheme:dark}
 *{box-sizing:border-box}
-body{margin:0}
 [hidden]{display:none!important}
-body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.45;
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.45;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px}
 h1{font-family:var(--display);font-size:26px;margin:0;text-wrap:balance}
-h2{font-family:var(--display);font-size:16px;margin:0 0 10px}
 .sub{color:var(--muted);margin:4px 0 0}
 header{max-width:1400px;margin:0 auto 16px}
 .grid{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
-@media (max-width:1050px){.grid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:1050px){.grid{grid-template-columns:minmax(0,1fr)}.stage{order:-1}}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .tabs{display:flex;gap:4px;background:var(--soft);padding:4px;border-radius:8px}
-.tabs button{flex:1;border:0;background:transparent;color:var(--fg);padding:8px;border-radius:6px;font:500 13px var(--body);cursor:pointer}
+.tabs button{flex:1;border:0;background:transparent;color:var(--fg);padding:8px 4px;border-radius:6px;font:500 13px var(--body);cursor:pointer}
 .tabs button[aria-selected="true"]{background:var(--panel);box-shadow:0 1px 2px rgba(0,0,0,.12)}
 label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:500}
-input[type=text],input[type=password],input[type=number],select,textarea{font:14px var(--body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px;width:100%}
-textarea{min-height:64px;resize:vertical}
+input[type=text],input[type=password],input[type=number],select,textarea{font:16px var(--body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px;width:100%}
+textarea{min-height:60px;resize:vertical}
 input[type=range]{width:100%;accent-color:var(--accent)}
+input[type=color]{width:100%;height:36px;border:1px solid var(--line);border-radius:6px;background:var(--bg);padding:2px}
 .row{display:flex;gap:8px;flex-wrap:wrap}
-.row>*{flex:1;min-width:110px}
+.row>*{flex:1;min-width:100px}
 .btn{border:1px solid var(--line);background:var(--panel);color:var(--fg);padding:9px 12px;border-radius:6px;font:600 13px var(--body);cursor:pointer}
 .btn.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
 .btn:disabled{opacity:.5;cursor:default}
@@ -55,84 +51,85 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .results button{padding:0;border:2px solid transparent;border-radius:6px;overflow:hidden;cursor:pointer;background:var(--soft);aspect-ratio:1}
 .results button:hover,.results button:focus-visible{border-color:var(--accent)}
 .results img{width:100%;height:100%;object-fit:cover;display:block}
-.note{font-size:12px;color:var(--muted)}
-.status{font-size:12px;color:var(--warn);min-height:1em}
+.note{font-size:12px;color:var(--muted);margin:0}
+.status{font-size:12px;color:var(--warn);min-height:1em;margin:0}
 .stage{display:flex;flex-direction:column;align-items:center;gap:12px}
 #preview{width:100%;max-width:440px;aspect-ratio:1;touch-action:none;cursor:grab;border-radius:8px;background:repeating-conic-gradient(var(--soft) 0 25%,transparent 0 50%) 0 0/20px 20px}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);justify-content:center}
 .legend i{display:inline-block;width:14px;height:0;border-top:2px dashed;vertical-align:middle;margin-right:4px}
-.credit{font-size:12px;color:var(--muted);word-break:break-word;text-align:center}
-details summary{cursor:pointer;font-weight:600}
+.credit{font-size:12px;color:var(--muted);word-break:break-word;text-align:center;margin:0}
 .drop{border:2px dashed var(--line);border-radius:8px;padding:24px;text-align:center;color:var(--muted)}
 .drop.over{border-color:var(--accent);color:var(--fg)}
-fieldset{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:10px;margin:0}
+fieldset{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:10px;margin:0;min-width:0}
 legend{font-weight:600;font-size:13px;padding:0 4px}
+details.sub-box{border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+details.sub-box[open]{padding-bottom:12px}
+details.sub-box summary{cursor:pointer;font-weight:600;font-size:13px}
+details.sub-box>div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.target{font-size:12px;background:var(--soft);border-radius:6px;padding:6px 8px;margin:0}
+.val{font-variant-numeric:tabular-nums;color:var(--fg)}
 </style>
-
+</head>
+<body>
 <header>
   <h1>Button-Bildstudio</h1>
-  <p class="sub">Motiv suchen, mit KI erzeugen oder hochladen, rund zuschneiden und als druckfertiges PNG mit Beschnittzugabe speichern.</p>
+  <p class="sub">Logo oder eigenes Motiv gestalten, Texte im Bogen setzen und als druckfertiges PNG mit Beschnittzugabe speichern.</p>
 </header>
 
 <div class="grid">
   <!-- Bildquelle -->
   <section class="panel" aria-label="Bildquelle">
+    <p class="target" id="targetInfo"></p>
     <div class="tabs" role="tablist">
       <button role="tab" id="tab-search" aria-selected="true">Suchen</button>
       <button role="tab" id="tab-gen" aria-selected="false">KI erzeugen</button>
       <button role="tab" id="tab-up" aria-selected="false">Hochladen</button>
     </div>
 
-    <div id="pane-search" class="pane">
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <label>Suchbegriff (Englisch liefert meist mehr Treffer)<input type="text" id="q" value="sunflower"></label>
-        <div class="row">
-          <label class="check"><input type="checkbox" id="commercial" checked> Kommerziell nutzbar</label>
-          <label class="check"><input type="checkbox" id="square"> Nur quadratisch</label>
-        </div>
-        <button class="btn primary" id="doSearch">Suchen</button>
-        <div class="status" id="searchStatus"></div>
-        <div class="results" id="results"></div>
-        <p class="note">Quelle: Openverse (Creative-Commons- und gemeinfreie Bilder aus Wikimedia, Flickr und mehr). Lizenz und Urheber stehen unter der Vorschau; bei CC BY bitte nennen.</p>
+    <div id="pane-search" class="pane" style="display:flex;flex-direction:column;gap:10px">
+      <label>Suchbegriff (Englisch liefert meist mehr Treffer)<input type="text" id="q" value="sunflower"></label>
+      <div class="row">
+        <label class="check"><input type="checkbox" id="commercial" checked> Kommerziell nutzbar</label>
+        <label class="check"><input type="checkbox" id="square"> Nur quadratisch</label>
       </div>
+      <button class="btn primary" id="doSearch">Suchen</button>
+      <p class="status" id="searchStatus"></p>
+      <div class="results" id="results"></div>
+      <p class="note">Quelle: Openverse (Creative-Commons- und gemeinfreie Bilder aus Wikimedia, Flickr und mehr). Lizenz und Urheber stehen unter der Vorschau; bei CC BY bitte nennen.</p>
     </div>
 
-    <div id="pane-gen" class="pane" hidden>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <label>Thema<input type="text" id="gTheme" value="Sonnenblume mit fröhlichem Gesicht"></label>
-        <label>Stil<select id="gStyle">
-          <option value="flat vector illustration, bold outlines, limited color palette">Flache Vektorgrafik</option>
-          <option value="retro 70s poster style, warm colors, halftone texture">Retro 70er</option>
-          <option value="cute kawaii sticker style, thick white outline">Kawaii-Sticker</option>
-          <option value="watercolor painting, soft edges">Aquarell</option>
-          <option value="photorealistic, studio lighting">Fotorealistisch</option>
-          <option value="black and white line art, high contrast">Strichzeichnung s/w</option>
-        </select></label>
-        <label>Zusatz (optional)<textarea id="gExtra" placeholder="z. B. Hintergrund hellblau, keine Schrift im Bild"></textarea></label>
-        <label>OpenAI-API-Schlüssel<input type="password" id="apiKey" placeholder="sk-…" autocomplete="off"></label>
-        <label class="check"><input type="checkbox" id="rememberKey"> Schlüssel in diesem Browser merken</label>
-        <button class="btn primary" id="doGen">Bild erzeugen</button>
-        <div class="status" id="genStatus"></div>
-        <p class="note">Das Motiv wird mittig und rund-tauglich angefragt, ohne Text im Bild (Text setzt du rechts). Kosten laut OpenAI-Preisliste, grob einige Cent pro Bild. Der Schlüssel geht nur an api.openai.com.</p>
-      </div>
+    <div id="pane-gen" class="pane" hidden style="display:flex;flex-direction:column;gap:10px">
+      <label>Thema<input type="text" id="gTheme" value="Sonnenblume mit fröhlichem Gesicht"></label>
+      <label>Stil<select id="gStyle">
+        <option value="flat vector illustration, bold outlines, limited color palette">Flache Vektorgrafik</option>
+        <option value="retro 70s poster style, warm colors, halftone texture">Retro 70er</option>
+        <option value="cute kawaii sticker style, thick white outline">Kawaii-Sticker</option>
+        <option value="watercolor painting, soft edges">Aquarell</option>
+        <option value="photorealistic, studio lighting">Fotorealistisch</option>
+        <option value="black and white line art, high contrast">Strichzeichnung s/w</option>
+      </select></label>
+      <label>Zusatz (optional)<textarea id="gExtra" placeholder="z. B. Hintergrund hellblau, keine Schrift im Bild"></textarea></label>
+      <label>OpenAI-API-Schlüssel<input type="password" id="apiKey" placeholder="sk-…" autocomplete="off"></label>
+      <label class="check"><input type="checkbox" id="rememberKey"> Schlüssel in diesem Browser merken</label>
+      <button class="btn primary" id="doGen">Bild erzeugen</button>
+      <p class="status" id="genStatus"></p>
+      <p class="note">Das Motiv wird mittig und rund-tauglich angefragt, ohne Text im Bild. Kosten laut OpenAI-Preisliste, grob einige Cent pro Bild. Der Schlüssel geht nur an api.openai.com.</p>
     </div>
 
     <div id="pane-up" class="pane" hidden>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <div class="drop" id="drop">Bild hierher ziehen, einfügen (Strg+V) oder<br><br><input type="file" id="file" accept="image/*"></div>
-      </div>
+      <div class="drop" id="drop">Bild hierher ziehen, einfügen (Strg+V) oder<br><br><input type="file" id="file" accept="image/*"></div>
     </div>
   </section>
 
   <!-- Vorschau -->
   <section class="panel stage" aria-label="Vorschau">
-    <canvas id="preview" width="880" height="880" aria-label="Runde Button-Vorschau, mit der Maus verschiebbar"></canvas>
+    <canvas id="preview" width="880" height="880" aria-label="Runde Button-Vorschau, mit Finger oder Maus verschiebbar"></canvas>
     <div class="legend">
       <span><i style="color:#e0413a"></i>Schnittkante</span>
       <span><i style="color:#2f5bd3"></i>Sichtbare Vorderseite</span>
       <span><i style="color:#1f9d55"></i>Sicherer Bereich für Text</span>
     </div>
-    <p class="credit" id="credit">Beispielmotiv. Wähle links ein Bild.</p>
+    <p class="credit" id="credit"></p>
     <div class="row" style="width:100%">
       <button class="btn primary" id="exportPng">PNG speichern (300 dpi)</button>
       <button class="btn" id="exportGuides">PNG mit Hilfslinien</button>
@@ -141,61 +138,75 @@ legend{font-weight:600;font-size:13px;padding:0 4px}
   </section>
 
   <!-- Bearbeiten -->
-  <section class="panel" aria-label="Bearbeiten">
+  <section class="panel" aria-label="Bearbeiten" id="editPanel">
     <fieldset><legend>Button</legend>
       <label>Größe<select id="preset">
-        <option value="25,33">25 mm (Zuschnitt 33 mm)</option>
-        <option value="32,43">32 mm (Zuschnitt 43 mm)</option>
-        <option value="38,48">38 mm (Zuschnitt 48 mm)</option>
-        <option value="44,56">44 mm (Zuschnitt 56 mm)</option>
-        <option value="56,68" selected>56 mm (Zuschnitt 68 mm)</option>
-        <option value="59,70">59 mm (Zuschnitt 70 mm)</option>
+        <option value="25,37" selected>25 mm (Zuschnitt 37 mm)</option>
+        <option value="32,44">32 mm (Zuschnitt 44 mm)</option>
+        <option value="37,49">37 mm (Zuschnitt 49 mm)</option>
+        <option value="50,65">50 mm (Zuschnitt 65 mm)</option>
+        <option value="56,68">56 mm (Zuschnitt 68 mm)</option>
+        <option value="75,87">75 mm (Zuschnitt 87 mm)</option>
       </select></label>
       <div class="row">
-        <label>Button-Ø mm<input type="number" id="faceMm" step="0.5" value="56"></label>
-        <label>Zuschnitt-Ø mm<input type="number" id="cutMm" step="0.5" value="68"></label>
+        <label>Button-Ø mm<input type="number" id="faceMm" step="0.5" value="25"></label>
+        <label>Zuschnitt-Ø mm<input type="number" id="cutMm" step="0.5" value="37"></label>
       </div>
-      <label>Hintergrundfarbe<input type="color" id="bgColor" value="#ffd54a"></label>
+      <label>Hintergrundfarbe<input type="color" id="bgColor" value="#ffffff"></label>
     </fieldset>
 
-    <fieldset><legend>Bild</legend>
-      <label>Zoom <input type="range" id="zoom" min="0.3" max="4" step="0.01" value="1"></label>
+    <fieldset><legend>Motiv</legend>
+      <div class="tabs" role="tablist" id="modeTabs">
+        <button role="tab" data-mode="logo" aria-selected="true">Logo (2 Flaggen)</button>
+        <button role="tab" data-mode="image" aria-selected="false">Eigenes Bild</button>
+      </div>
+      <label>Größe <input type="range" id="zoom" min="0.2" max="4" step="0.01" value="1"></label>
       <label>Drehen <input type="range" id="rot" min="-180" max="180" step="1" value="0"></label>
-      <div class="row">
-        <label>Helligkeit<input type="range" id="fBright" min="50" max="150" value="100"></label>
-        <label>Kontrast<input type="range" id="fContrast" min="50" max="150" value="100"></label>
+
+      <div id="logoBox" style="display:flex;flex-direction:column;gap:10px">
+        <div class="row">
+          <label class="check"><input type="checkbox" id="lgRing" checked> Kreis ums Logo</label>
+          <label class="check"><input type="checkbox" id="lgMirror"> Spiegeln</label>
+        </div>
+        <div class="row">
+          <label>Kreisfüllung<input type="color" id="lgFill" value="#ffffff"></label>
+          <label>Kreislinie<input type="color" id="lgLine" value="#000000"></label>
+        </div>
+        <details class="sub-box" open><summary>Obere Flagge (vorn)</summary><div data-flag="1"></div></details>
+        <details class="sub-box"><summary>Untere Flagge (hinten)</summary><div data-flag="2"></div></details>
       </div>
-      <div class="row">
-        <label>Sättigung<input type="range" id="fSat" min="0" max="200" value="100"></label>
-        <label>Effekt<select id="fEffect"><option value="">Keiner</option><option value="grayscale(1)">Schwarzweiß</option><option value="sepia(.8)">Sepia</option><option value="invert(1)">Invertiert</option></select></label>
+
+      <div id="imageBox" hidden style="display:flex;flex-direction:column;gap:10px">
+        <div class="row">
+          <label>Helligkeit<input type="range" id="fBright" min="50" max="150" value="100"></label>
+          <label>Kontrast<input type="range" id="fContrast" min="50" max="150" value="100"></label>
+        </div>
+        <div class="row">
+          <label>Sättigung<input type="range" id="fSat" min="0" max="200" value="100"></label>
+          <label>Effekt<select id="fEffect"><option value="">Keiner</option><option value="grayscale(1)">Schwarzweiß</option><option value="sepia(.8)">Sepia</option><option value="invert(1)">Invertiert</option></select></label>
+        </div>
       </div>
-      <div class="row">
-        <button class="btn" id="removeBg">Hintergrund entfernen (KI)</button>
-        <button class="btn" id="resetImg">Ausrichtung zurücksetzen</button>
-      </div>
-      <div class="status" id="bgStatus"></div>
+
+      <details class="sub-box"><summary>KI-Bearbeitung</summary><div>
+        <p class="note" id="aiTargetNote"></p>
+        <button class="btn" id="removeBg">Hintergrund entfernen (KI, kostenlos im Browser)</button>
+        <label>Änderung beschreiben<textarea id="aiEditPrompt" placeholder="z. B. im Comic-Stil, Farben kräftiger, Hintergrund entfernen und Stern hinzufügen"></textarea></label>
+        <button class="btn" id="aiEdit">Mit KI bearbeiten (OpenAI)</button>
+        <p class="status" id="bgStatus"></p>
+        <p class="note">„Mit KI bearbeiten“ nutzt den API-Schlüssel aus dem Bereich „KI erzeugen“.</p>
+      </div></details>
+      <button class="btn" id="resetImg">Position zurücksetzen</button>
     </fieldset>
 
-    <fieldset><legend>Text</legend>
-      <label>Oben (im Bogen)<input type="text" id="tTop" value="SOMMERFEST"></label>
-      <label>Mitte<input type="text" id="tMid" value=""></label>
-      <label>Unten (im Bogen)<input type="text" id="tBottom" value="2026"></label>
+    <fieldset><legend>Texte</legend>
       <div class="row">
-        <label>Schrift<select id="tFont">
-          <option value="Bebas Neue">Bebas Neue</option>
-          <option value="Archivo Black">Archivo Black</option>
-          <option value="Bricolage Grotesque">Bricolage</option>
-          <option value="Pacifico">Pacifico</option>
-          <option value="Caveat">Caveat</option>
-          <option value="Inter">Inter</option>
-        </select></label>
-        <label>Größe<input type="range" id="tSize" min="4" max="20" step="0.5" value="9"></label>
-      </div>
-      <div class="row">
-        <label>Textfarbe<input type="color" id="tColor" value="#1b2230"></label>
+        <label>Textfarbe<input type="color" id="tColor" value="#000000"></label>
         <label>Kontur<input type="color" id="tStroke" value="#ffffff"></label>
-        <label>Konturbreite<input type="range" id="tStrokeW" min="0" max="3" step="0.1" value="0.8"></label>
+        <label>Konturbreite<input type="range" id="tStrokeW" min="0" max="3" step="0.1" value="0"></label>
       </div>
+      <details class="sub-box" open><summary>Oben (im Bogen)</summary><div data-text="top"></div></details>
+      <details class="sub-box"><summary>Mitte</summary><div data-text="mid"></div></details>
+      <details class="sub-box" open><summary>Unten (im Bogen)</summary><div data-text="bottom"></div></details>
     </fieldset>
   </section>
 </div>
@@ -204,61 +215,165 @@ legend{font-weight:600;font-size:13px;padding:0 4px}
 (() => {
 const $ = id => document.getElementById(id);
 const cv = $("preview"), ctx = cv.getContext("2d");
-const state = { img:null, ox:0, oy:0, credit:"" };
+const state = { mode:"logo", img:null, flagImg:{1:null,2:null}, ox:0, oy:0, credit:"" };
 const store = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}} };
+const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const v = id => $(id).value, num = id => +$(id).value, on = id => $(id).checked;
+
+/* ---------- Bedienelemente erzeugen ---------- */
+const FONTS = [["Archivo Black","Archivo Black"],["Inter:800","Inter fett"],["Bebas Neue","Bebas Neue"],["Anton","Anton"],["Saira Stencil One","Stencil"],["Bangers","Bangers (Comic)"],["Permanent Marker","Marker"],["Pacifico","Pacifico"],["Caveat","Caveat"],["Bricolage Grotesque:700","Bricolage"]];
+const fontOpts = sel => FONTS.map(([val,n])=>`<option value="${val}"${val===sel?" selected":""}>${n}</option>`).join("");
+const rng = (id,label,min,max,step,val,unit="") => `<label>${label} <span class="val" data-out="${id}" data-unit="${unit}"></span><input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}"></label>`;
+
+const TEXT_DEF = {
+  top:   {text:"ANTIFASCHISTISCHE", font:"Archivo Black", size:3.2, track:4, span:200, auto:true, inset:1.3},
+  mid:   {text:"", font:"Archivo Black", size:5, width:100, y:0},
+  bottom:{text:"AKTION", font:"Archivo Black", size:3.2, track:12, span:90, auto:false, inset:1.3}
+};
+document.querySelectorAll("[data-text]").forEach(box=>{
+  const k = box.dataset.text, d = TEXT_DEF[k];
+  let h = `<input type="text" id="${k}Text" value="${esc(d.text)}" aria-label="Text"><label>Schrift<select id="${k}Font">${fontOpts(d.font)}</select></label>`;
+  if (k==="mid"){
+    h += `<div class="row">${rng(k+"Size","Größe",1.5,16,0.1,d.size," mm")}${rng(k+"Width","Breite",40,200,1,d.width," %")}</div>`
+       + rng(k+"Y","Höhe verschieben",-12,12,0.1,d.y," mm");
+  } else {
+    h += `<label class="check"><input type="checkbox" id="${k}Auto"${d.auto?" checked":""}> Größe automatisch an die Bogenlänge anpassen</label>`
+       + `<div class="row">${rng(k+"Size","Größe",1.2,10,0.1,d.size," mm")}${rng(k+"Track","Laufweite",-10,80,1,d.track," %")}</div>`
+       + `<div class="row">${rng(k+"Span","Bogenlänge",20,330,1,d.span,"°")}${rng(k+"Inset","Abstand zum Rand",0,8,0.1,d.inset," mm")}</div>`;
+  }
+  box.innerHTML = h;
+});
+const FLAG_DEF = {1:{c1:"#e30613",c2:"#ff6a00",rot:-6,x:0,y:0}, 2:{c1:"#111111",c2:"#555555",rot:14,x:0,y:0}};
+document.querySelectorAll("[data-flag]").forEach(box=>{
+  const n = box.dataset.flag, d = FLAG_DEF[n], p = "f"+n;
+  box.innerHTML = `<div class="tabs" role="tablist" data-fill="${n}">
+      <button role="tab" data-v="solid" aria-selected="true">Farbe</button><button role="tab" data-v="grad" aria-selected="false">Verlauf</button><button role="tab" data-v="image" aria-selected="false">Bild</button></div>
+    <div class="row"><label>Farbe<input type="color" id="${p}C1" value="${d.c1}"></label><label data-show="${p}grad">Endfarbe<input type="color" id="${p}C2" value="${d.c2}"></label></div>
+    <div data-show="${p}grad">${rng(p+"Ang","Verlaufswinkel",0,360,1,90,"°")}</div>
+    <div data-show="${p}image" style="display:flex;flex-direction:column;gap:8px">
+      <p class="note">Wähle links ein Bild (Suchen, KI erzeugen oder Hochladen). Es wird in diese Flagge eingesetzt.</p>
+      ${rng(p+"ImgZoom","Bildgröße in der Flagge",0.5,4,0.01,1,"×")}
+    </div>
+    <div class="row">${rng(p+"Rot","Neigung",-45,45,1,d.rot,"°")}${rng(p+"Scale","Größe",50,150,1,100," %")}</div>
+    <div class="row">${rng(p+"X","Links/rechts",-50,50,1,0,"")}${rng(p+"Y","Hoch/runter",-50,50,1,0,"")}</div>`;
+});
+const flagFill = {1:"solid", 2:"solid"};
+document.querySelectorAll("[data-fill]").forEach(t=>{
+  t.addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; const n=t.dataset.fill; flagFill[n]=b.dataset.v;
+    t.querySelectorAll("button").forEach(x=>x.setAttribute("aria-selected", x===b)); syncUi(); draw(); });
+});
 
 /* ---------- Tabs ---------- */
 const tabs = [["tab-search","pane-search"],["tab-gen","pane-gen"],["tab-up","pane-up"]];
-tabs.forEach(([t,p]) => $(t).onclick = () => tabs.forEach(([t2,p2]) => { $(t2).setAttribute("aria-selected", t2===t); $(p2).hidden = t2!==t; }));
+tabs.forEach(([t]) => $(t).onclick = () => tabs.forEach(([t2,p2]) => { $(t2).setAttribute("aria-selected", t2===t); $(p2).hidden = t2!==t; }));
+$("modeTabs").addEventListener("click", e=>{ const b=e.target.closest("button"); if(b) setMode(b.dataset.mode); });
+function setMode(m){ state.mode=m; document.querySelectorAll("#modeTabs button").forEach(b=>b.setAttribute("aria-selected", b.dataset.mode===m)); syncUi(); draw(); }
 
-/* ---------- Beispielmotiv ---------- */
-function sampleImage(){
-  const c = document.createElement("canvas"); c.width = c.height = 800; const g = c.getContext("2d");
-  g.translate(400,400);
-  for(let i=0;i<24;i++){ g.rotate(Math.PI/12); g.fillStyle = i%2?"#f4a300":"#ffc31f"; g.beginPath(); g.ellipse(0,-230,55,140,0,0,Math.PI*2); g.fill(); }
-  g.fillStyle="#6b3e12"; g.beginPath(); g.arc(0,0,150,0,Math.PI*2); g.fill();
-  g.fillStyle="#4a2a0a"; for(let i=0;i<160;i++){ const a=i*2.4, r=Math.sqrt(i)*11; g.beginPath(); g.arc(Math.cos(a)*r,Math.sin(a)*r,5,0,7); g.fill(); }
-  const im = new Image(); im.onload = () => { state.img = im; draw(); }; im.src = c.toDataURL();
+// Wohin kommt ein neu gewähltes Bild?
+function target(){
+  if (state.mode==="logo"){ if(flagFill[1]==="image") return "flag1"; if(flagFill[2]==="image") return "flag2"; }
+  return "main";
+}
+function syncUi(){
+  $("logoBox").hidden = state.mode!=="logo"; $("imageBox").hidden = state.mode!=="image";
+  [1,2].forEach(n=>document.querySelectorAll(`[data-show^="f${n}"]`).forEach(el=>{ el.hidden = el.dataset.show!=="f"+n+flagFill[n]; }));
+  const t = target();
+  const names = {main:"als eigenes Motiv", flag1:"in die obere Flagge", flag2:"in die untere Flagge"};
+  $("targetInfo").textContent = "Ein hier gewähltes Bild kommt " + names[t] + ".";
+  const has = t==="main" ? state.img : state.flagImg[t==="flag1"?1:2];
+  $("aiTargetNote").textContent = has ? "Bearbeitet wird das Bild " + names[t].replace("als eigenes Motiv","im Motiv") + "." : "Wähle zuerst links ein Bild, dann kannst du es hier bearbeiten.";
+  document.querySelectorAll("[data-out]").forEach(o=>{ const el=$(o.dataset.out); if(el) o.textContent = (+el.value).toLocaleString("de-DE") + (o.dataset.unit||""); });
 }
 
 /* ---------- Zeichnen ---------- */
-const v = id => $(id).value;
-function geom(){ const face = +v("faceMm")||56, cut = Math.max(+v("cutMm")||68, face); return {face, cut}; }
+function geom(){ const face = num("faceMm")||25, cut = Math.max(num("cutMm")||37, face); return {face, cut}; }
+function fontCss(sel, px){ const [fam, w] = sel.split(":"); return `${w||"400"} ${px}px "${fam}"`; }
+
+function flagPath(g){ // Flagge in Einheitskoordinaten, Mast bei x=0, Tuch weht nach links
+  g.beginPath();
+  g.moveTo(0.04,-0.62);
+  g.bezierCurveTo(-0.25,-0.82,-0.52,-0.42,-0.88,-0.62);
+  g.lineTo(-0.88,-0.02);
+  g.bezierCurveTo(-0.52,0.18,-0.25,-0.22,0.04,-0.02);
+  g.closePath();
+}
+function drawFlag(g, n, L){
+  const p="f"+n, s = L*num(p+"Scale")/100;
+  const base = n==1 ? {x:0.10,y:0.16} : {x:0.30,y:0.02};
+  g.save();
+  g.translate((base.x + num(p+"X")/100)*L, (base.y + num(p+"Y")/100)*L);
+  g.rotate(num(p+"Rot")*Math.PI/180);
+  g.scale(s, s);
+  let fill = v(p+"C1");
+  if (flagFill[n]==="grad"){
+    const a = num(p+"Ang")*Math.PI/180, dx=Math.cos(a)*0.5, dy=Math.sin(a)*0.5;
+    const gr = g.createLinearGradient(-0.42-dx,-0.32-dy,-0.42+dx,-0.32+dy); gr.addColorStop(0,v(p+"C1")); gr.addColorStop(1,v(p+"C2")); fill = gr;
+  }
+  g.fillStyle = v(p+"C1"); g.fillRect(0,-0.66,0.07,1.46);            // Mast
+  flagPath(g); g.fillStyle = fill; g.fill();
+  const im = state.flagImg[n];
+  if (flagFill[n]==="image" && im){
+    g.save(); flagPath(g); g.clip();
+    const w=0.92, h=1.0, k = Math.max(w/im.width, h/im.height)*num(p+"ImgZoom");
+    g.drawImage(im, -0.42 - im.width*k/2, -0.32 - im.height*k/2, im.width*k, im.height*k);
+    g.restore();
+  }
+  g.restore();
+}
 
 function render(g, S, guides){
   const {face, cut} = geom(); const pxmm = S / cut; const R = S/2;
   g.save(); g.clearRect(0,0,S,S);
   g.beginPath(); g.arc(R,R,R,0,Math.PI*2); g.clip();
   g.fillStyle = v("bgColor"); g.fillRect(0,0,S,S);
-  if (state.img){
-    const im = state.img, base = Math.max(S/im.width, S/im.height) * +v("zoom");
-    g.save();
-    g.translate(R + state.ox*S, R + state.oy*S); g.rotate(+v("rot")*Math.PI/180);
+  g.save();
+  g.translate(R + state.ox*S, R + state.oy*S); g.rotate(num("rot")*Math.PI/180);
+  if (state.mode==="logo"){
+    const L = (face/2)*pxmm*0.62*num("zoom");
+    if (on("lgRing")){ g.beginPath(); g.arc(0,0,L,0,Math.PI*2); g.fillStyle=v("lgFill"); g.fill(); }
+    g.save(); g.beginPath(); g.arc(0,0,L*0.96,0,Math.PI*2); g.clip();
+    if (on("lgMirror")) g.scale(-1,1);
+    drawFlag(g,2,L); drawFlag(g,1,L);
+    g.restore();
+    if (on("lgRing")){ g.beginPath(); g.arc(0,0,L,0,Math.PI*2); g.lineWidth=L*0.07; g.strokeStyle=v("lgLine"); g.stroke(); }
+  } else if (state.img){
+    const im = state.img, base = Math.max(S/im.width, S/im.height) * num("zoom");
     g.filter = `brightness(${v("fBright")}%) contrast(${v("fContrast")}%) saturate(${v("fSat")}%) ${v("fEffect")}`.trim();
     g.drawImage(im, -im.width*base/2, -im.height*base/2, im.width*base, im.height*base);
-    g.restore();
   }
-  // Text
-  const font = v("tFont");
-  const sizePx = +v("tSize") * pxmm * 0.6;
-  const textR = (face/2 - 1.5) * pxmm - sizePx*0.5;  // Grundlinie innerhalb sicherem Bereich
-  g.fillStyle = v("tColor"); g.strokeStyle = v("tStroke"); g.lineJoin = "round";
-  const sw = +v("tStrokeW") * pxmm;
-  g.font = `${sizePx}px "${font}"`; g.textBaseline = "middle"; g.textAlign = "center";
-  arcText(g, v("tTop"), R, R, textR, true, sw);
-  arcText(g, v("tBottom"), R, R, textR, false, sw);
-  if (v("tMid")){ if(sw>0){g.lineWidth=sw*2; g.strokeText(v("tMid"),R,R);} g.fillText(v("tMid"), R, R); }
+  g.restore();
+  // Texte
+  g.fillStyle = v("tColor"); g.strokeStyle = v("tStroke"); g.lineJoin = "round"; g.textBaseline = "middle"; g.textAlign = "center";
+  const sw = num("tStrokeW") * pxmm * 0.3;
+  arcField(g, "top", R, pxmm, face, sw, true);
+  arcField(g, "bottom", R, pxmm, face, sw, false);
+  const mt = v("midText");
+  if (mt){
+    const px = num("midSize")*pxmm; g.font = fontCss(v("midFont"), px);
+    g.save(); g.translate(R, R + num("midY")*pxmm); g.scale(num("midWidth")/100, 1);
+    if (sw>0){ g.lineWidth=sw*2; g.strokeText(mt,0,0); } g.fillText(mt,0,0); g.restore();
+  }
   g.restore();
   if (guides){
     g.save(); g.setLineDash([S/90,S/120]); g.lineWidth = Math.max(1,S/400);
-    ring(g,R,R-g.lineWidth/2,"#e0413a"); ring(g,R,face/2*pxmm,"#2f5bd3"); ring(g,R,(face/2-2)*pxmm,"#1f9d55");
+    ring(g,R,R-g.lineWidth/2,"#e0413a"); ring(g,R,face/2*pxmm,"#2f5bd3"); ring(g,R,(face/2-1.5)*pxmm,"#1f9d55");
     g.restore();
   }
 }
 function ring(g,R,r,c){ g.strokeStyle=c; g.beginPath(); g.arc(R,R,r,0,Math.PI*2); g.stroke(); }
-function arcText(g, text, cx, cy, r, top, sw){
-  if(!text) return;
-  const chars=[...text], widths=chars.map(c=>g.measureText(c).width), spacing = g.measureText(" ").width*0.15;
+function arcField(g, k, R, pxmm, face, sw, top){
+  const text = v(k+"Text"); if(!text) return;
+  const outer = (face/2 - num(k+"Inset"))*pxmm, track = num(k+"Track")/100;
+  let px = num(k+"Size")*pxmm;
+  const measure = p => { g.font = fontCss(v(k+"Font"), p); const ws=[...text].map(c=>g.measureText(c).width); return {ws, total: ws.reduce((a,b)=>a+b,0) + track*p*0.5*(ws.length-1)}; };
+  let m = measure(px);
+  if (on(k+"Auto")){ // Größe so wählen, dass der Text die Bogenlänge füllt
+    for (let i=0;i<3;i++){ const r = outer - px/2; px *= (num(k+"Span")*Math.PI/180*r) / m.total; px = Math.min(px, 9*pxmm); m = measure(px); }
+  }
+  const r = outer - px/2;
+  arcText(g, [...text], m.ws, track*px*0.5, R, R, r, top, sw);
+}
+function arcText(g, chars, widths, spacing, cx, cy, r, top, sw){
   const total = widths.reduce((a,b)=>a+b,0) + spacing*(chars.length-1);
   let ang = (top ? -Math.PI/2 : Math.PI/2) + (top ? -1 : 1) * total/r/2;
   chars.forEach((c,i)=>{
@@ -269,41 +384,53 @@ function arcText(g, text, cx, cy, r, top, sw){
   });
 }
 let raf=0;
-function draw(){ cancelAnimationFrame(raf); raf = requestAnimationFrame(()=>render(ctx, cv.width, true)); }
+function draw(){ cancelAnimationFrame(raf); raf = requestAnimationFrame(()=>{ syncUi(); render(ctx, cv.width, true); }); }
 
 /* ---------- Steuerung ---------- */
-document.querySelectorAll("section[aria-label=Bearbeiten] input, section[aria-label=Bearbeiten] select").forEach(el=>el.addEventListener("input", draw));
+$("editPanel").addEventListener("input", draw);
 $("preset").addEventListener("input", ()=>{ const [f,c]=v("preset").split(","); $("faceMm").value=f; $("cutMm").value=c; draw(); });
 $("resetImg").onclick = ()=>{ state.ox=state.oy=0; $("zoom").value=1; $("rot").value=0; draw(); };
-document.fonts && document.fonts.ready.then(draw);
-$("tFont").addEventListener("input", ()=>document.fonts && document.fonts.load(`40px "${v("tFont")}"`).then(draw));
+if (document.fonts){ document.fonts.ready.then(draw); FONTS.forEach(([f])=>document.fonts.load(fontCss(f,40)).then(draw).catch(()=>{})); }
 
-// Ziehen
-let drag=null;
-cv.addEventListener("pointerdown", e=>{ drag={x:e.clientX,y:e.clientY,ox:state.ox,oy:state.oy}; cv.setPointerCapture(e.pointerId); cv.style.cursor="grabbing"; });
-cv.addEventListener("pointermove", e=>{ if(!drag) return; const w=cv.getBoundingClientRect().width; state.ox=drag.ox+(e.clientX-drag.x)/w; state.oy=drag.oy+(e.clientY-drag.y)/w; draw(); });
-cv.addEventListener("pointerup", ()=>{ drag=null; cv.style.cursor="grab"; });
-cv.addEventListener("wheel", e=>{ e.preventDefault(); const z=$("zoom"); z.value=Math.min(4,Math.max(.3,+z.value*(e.deltaY<0?1.06:1/1.06))); draw(); }, {passive:false});
+// Ziehen, Mausrad, zwei Finger
+const pts = new Map(); let drag=null, pinch=null;
+cv.addEventListener("pointerdown", e=>{ pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); cv.setPointerCapture(e.pointerId);
+  if (pts.size===1) drag={x:e.clientX,y:e.clientY,ox:state.ox,oy:state.oy};
+  if (pts.size===2){ const [a,b]=[...pts.values()]; pinch={d:Math.hypot(a.x-b.x,a.y-b.y), z:num("zoom")}; drag=null; } });
+cv.addEventListener("pointermove", e=>{ if(!pts.has(e.pointerId)) return; pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  const w=cv.getBoundingClientRect().width;
+  if (pinch && pts.size===2){ const [a,b]=[...pts.values()]; $("zoom").value=Math.min(4,Math.max(.2,pinch.z*Math.hypot(a.x-b.x,a.y-b.y)/pinch.d)); draw(); }
+  else if (drag){ state.ox=drag.ox+(e.clientX-drag.x)/w; state.oy=drag.oy+(e.clientY-drag.y)/w; draw(); } });
+const up = e=>{ pts.delete(e.pointerId); if(pts.size<2) pinch=null; if(!pts.size) drag=null; };
+cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+cv.addEventListener("wheel", e=>{ e.preventDefault(); const z=$("zoom"); z.value=Math.min(4,Math.max(.2,+z.value*(e.deltaY<0?1.06:1/1.06))); draw(); }, {passive:false});
 
 /* ---------- Bild laden ---------- */
+function useImage(im, credit){
+  const t = target();
+  if (t==="main"){ state.img=im; state.credit=credit||""; if(state.mode!=="image"){ setMode("image"); } state.ox=state.oy=0; $("zoom").value=1; $("rot").value=0; }
+  else state.flagImg[t==="flag1"?1:2]=im;
+  $("credit").innerHTML = credit||"";
+  draw();
+}
 function loadImage(src, credit, fallback){
   return new Promise((res,rej)=>{
     const im=new Image(); im.crossOrigin="anonymous";
-    im.onload=()=>{ state.img=im; state.ox=state.oy=0; $("zoom").value=1; $("rot").value=0; state.credit=credit||""; $("credit").innerHTML=credit||"Eigenes Bild"; draw(); res(); };
+    im.onload=()=>{ useImage(im, credit); res(); };
     im.onerror=()=> fallback ? loadImage(fallback, credit).then(res,rej) : rej(new Error("Bild ließ sich nicht laden."));
     im.src=src;
   });
 }
 function loadBlob(blob, credit){ return loadImage(URL.createObjectURL(blob), credit); }
+function currentImage(){ const t=target(); return t==="main" ? state.img : state.flagImg[t==="flag1"?1:2]; }
 
 /* ---------- Suche (Openverse) ---------- */
-const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 async function search(){
   const q=v("q").trim(); if(!q) return;
   $("searchStatus").textContent="Suche läuft …"; $("results").innerHTML="";
   const p=new URLSearchParams({q, page_size:"40", mature:"false"});
-  if($("commercial").checked) p.set("license_type","commercial");
-  if($("square").checked) p.set("aspect_ratio","square");
+  if(on("commercial")) p.set("license_type","commercial");
+  if(on("square")) p.set("aspect_ratio","square");
   try{
     const r=await fetch("https://api.openverse.org/v1/images/?"+p);
     if(!r.ok) throw new Error("Openverse antwortet mit Status "+r.status+".");
@@ -317,53 +444,69 @@ async function search(){
       b.onclick=()=>{ $("searchStatus").textContent="Lade Bild …"; loadImage(it.url, credit, it.thumbnail+"?full_size=true").then(()=>$("searchStatus").textContent="", e=>$("searchStatus").textContent=e.message); };
       $("results").append(b);
     });
-  }catch(e){ $("searchStatus").textContent = blockedMsg(e); }
+  }catch(e){ $("searchStatus").textContent = netMsg(e); }
 }
-function blockedMsg(e){ return (e instanceof TypeError) ? "Keine Verbindung zum Dienst. In der Vorschau auf claude.ai sind externe Abrufe gesperrt; öffne die heruntergeladene HTML-Datei direkt im Browser." : e.message; }
+function netMsg(e){ return (e instanceof TypeError) ? "Keine Verbindung zum Dienst. Prüfe die Internetverbindung." : e.message; }
 $("doSearch").onclick=search; $("q").addEventListener("keydown",e=>{ if(e.key==="Enter") search(); });
 
-/* ---------- KI erzeugen (OpenAI) ---------- */
+/* ---------- KI erzeugen und bearbeiten (OpenAI) ---------- */
 const savedKey=store.get("bs_openai_key"); if(savedKey){ $("apiKey").value=savedKey; $("rememberKey").checked=true; }
+function apiKey(statusEl){ const key=v("apiKey").trim(); if(!key){ statusEl.textContent="Bitte im Bereich „KI erzeugen“ einen OpenAI-API-Schlüssel eintragen."; return null; } store.set("bs_openai_key", on("rememberKey")?key:null); return key; }
 $("doGen").onclick=async()=>{
-  const key=v("apiKey").trim(); if(!key){ $("genStatus").textContent="Bitte API-Schlüssel eintragen."; return; }
-  store.set("bs_openai_key", $("rememberKey").checked?key:null);
+  const key=apiKey($("genStatus")); if(!key) return;
   const prompt=`Motif for a round pin-back button: ${v("gTheme")}. Style: ${v("gStyle")}. ${v("gExtra")} Centered composition that works inside a circle, subject fully visible with margin, no text, no letters, no border, square image.`;
   $("doGen").disabled=true; $("genStatus").textContent="Bild wird erzeugt, das dauert meist 10 bis 40 Sekunden …";
   try{
     const r=await fetch("https://api.openai.com/v1/images/generations",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},body:JSON.stringify({model:"gpt-image-1",prompt,size:"1024x1024",n:1})});
     const d=await r.json(); if(!r.ok) throw new Error("OpenAI: "+(d.error?.message||r.status));
-    const b64=d.data[0].b64_json; await loadImage("data:image/png;base64,"+b64, "KI-generiert mit OpenAI gpt-image-1: „"+esc(v("gTheme"))+"“");
+    await loadImage("data:image/png;base64,"+d.data[0].b64_json, "KI-generiert mit OpenAI gpt-image-1: „"+esc(v("gTheme"))+"“");
     $("genStatus").textContent="";
-  }catch(e){ $("genStatus").textContent=blockedMsg(e); }
+  }catch(e){ $("genStatus").textContent=netMsg(e); }
   $("doGen").disabled=false;
+};
+function imageBlob(im){ const c=document.createElement("canvas"); c.width=im.naturalWidth||im.width; c.height=im.naturalHeight||im.height; c.getContext("2d").drawImage(im,0,0); return new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error("Bild kann nicht gelesen werden (fehlende Freigabe der Quelle).")),"image/png")); }
+async function replaceCurrent(blob){
+  const t=target(), keep={ox:state.ox,oy:state.oy,z:v("zoom"),r:v("rot")};
+  await new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>{ if(t==="main") state.img=im; else state.flagImg[t==="flag1"?1:2]=im; res(); }; im.onerror=rej; im.src=URL.createObjectURL(blob); });
+  state.ox=keep.ox; state.oy=keep.oy; $("zoom").value=keep.z; $("rot").value=keep.r; draw();
+}
+$("removeBg").onclick=async()=>{
+  const im=currentImage(); if(!im){ $("bgStatus").textContent="Wähle zuerst links ein Bild."; return; }
+  $("removeBg").disabled=true; $("bgStatus").textContent="KI-Modell wird geladen (beim ersten Mal ca. 40 MB) …";
+  try{
+    const mod=await import("https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/+esm");
+    const blob=await imageBlob(im);
+    $("bgStatus").textContent="Hintergrund wird entfernt …";
+    const out=await mod.removeBackground(blob,{progress:(k,cur,tot)=>{ if(tot) $("bgStatus").textContent=`Lade Modell … ${Math.round(cur/tot*100)} %`; }});
+    await replaceCurrent(out);
+    $("bgStatus").textContent="Fertig.";
+  }catch(e){ console.error(e); $("bgStatus").textContent="Hintergrund entfernen ging nicht: "+(e.message||e); }
+  $("removeBg").disabled=false;
+};
+$("aiEdit").onclick=async()=>{
+  const im=currentImage(); if(!im){ $("bgStatus").textContent="Wähle zuerst links ein Bild."; return; }
+  const prompt=v("aiEditPrompt").trim(); if(!prompt){ $("bgStatus").textContent="Beschreibe kurz, was die KI ändern soll."; return; }
+  const key=apiKey($("bgStatus")); if(!key) return;
+  $("aiEdit").disabled=true; $("bgStatus").textContent="KI bearbeitet das Bild, das dauert meist 20 bis 60 Sekunden …";
+  try{
+    const fd=new FormData(); fd.append("model","gpt-image-1"); fd.append("prompt", prompt+". Keep it suitable for a round pin-back button, no added text."); fd.append("size","1024x1024");
+    fd.append("image", await imageBlob(im), "bild.png");
+    const r=await fetch("https://api.openai.com/v1/images/edits",{method:"POST",headers:{"Authorization":"Bearer "+key},body:fd});
+    const d=await r.json(); if(!r.ok) throw new Error("OpenAI: "+(d.error?.message||r.status));
+    const bin=atob(d.data[0].b64_json), arr=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+    await replaceCurrent(new Blob([arr],{type:"image/png"}));
+    $("bgStatus").textContent="Fertig.";
+  }catch(e){ $("bgStatus").textContent=netMsg(e); }
+  $("aiEdit").disabled=false;
 };
 
 /* ---------- Hochladen ---------- */
-$("file").onchange=e=>{ const f=e.target.files[0]; if(f) loadBlob(f,"Eigenes Bild: "+esc(f.name)); };
+$("file").onchange=e=>{ const f=e.target.files[0]; if(f) loadBlob(f,"Eigenes Bild: "+esc(f.name)); e.target.value=""; };
 const drop=$("drop");
 ["dragenter","dragover"].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add("over");}));
 ["dragleave","drop"].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove("over");}));
 drop.addEventListener("drop",e=>{ const f=[...e.dataTransfer.files].find(f=>f.type.startsWith("image/")); if(f) loadBlob(f,"Eigenes Bild: "+esc(f.name)); });
 document.addEventListener("paste",e=>{ const it=[...(e.clipboardData?.items||[])].find(i=>i.type.startsWith("image/")); if(it) loadBlob(it.getAsFile(),"Eingefügtes Bild"); });
-
-/* ---------- Hintergrund entfernen (KI im Browser) ---------- */
-$("removeBg").onclick=async()=>{
-  if(!state.img) return;
-  $("removeBg").disabled=true; $("bgStatus").textContent="KI-Modell wird geladen (beim ersten Mal ca. 40 MB) …";
-  try{
-    const mod=await import("https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/+esm");
-    const c=document.createElement("canvas"); c.width=state.img.naturalWidth||state.img.width; c.height=state.img.naturalHeight||state.img.height;
-    c.getContext("2d").drawImage(state.img,0,0);
-    const blob=await new Promise(r=>c.toBlob(r,"image/png"));
-    $("bgStatus").textContent="Hintergrund wird entfernt …";
-    const out=await mod.removeBackground(blob,{progress:(k,cur,tot)=>{ if(tot) $("bgStatus").textContent=`Lade Modell … ${Math.round(cur/tot*100)} %`; }});
-    const keep={ox:state.ox,oy:state.oy,z:v("zoom"),r:v("rot"),credit:state.credit};
-    await loadImage(URL.createObjectURL(out), keep.credit);
-    state.ox=keep.ox; state.oy=keep.oy; $("zoom").value=keep.z; $("rot").value=keep.r; draw();
-    $("bgStatus").textContent="Fertig. Die Hintergrundfarbe oben scheint jetzt durch.";
-  }catch(e){ console.error(e); $("bgStatus").textContent = "Hintergrund entfernen ging nicht: "+(e.message||e)+". In der claude.ai-Vorschau ist das gesperrt; nutze die HTML-Datei im Browser."; }
-  $("removeBg").disabled=false;
-};
 
 /* ---------- Export ---------- */
 async function exportPng(guides){
@@ -372,19 +515,14 @@ async function exportPng(guides){
   let blob; try{ blob=await new Promise((r,j)=>c.toBlob(b=>b?r(b):j(new Error("leer")),"image/png")); }
   catch(e){ $("exportStatus").textContent="Export blockiert: Das Bild stammt von einer Seite ohne Freigabe. Lade es herunter und dann über ‚Hochladen‘ wieder hinein."; return; }
   const name=`button-${face}mm-zuschnitt-${cut}mm${guides?"-hilfslinien":""}.png`;
-  try{
-    const dl = window.claude?.use ? await window.claude.use("downloads") : null;
-    if(dl){ await dl.save({filename:name, data:blob}); $("exportStatus").textContent="Gespeichert: "+name; return; }
-  }catch(e){ if(e?.code && e.code!=="unavailable"){ $("exportStatus").textContent="Speichern abgebrochen."; return; } }
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.append(a); a.click(); a.remove();
   $("exportStatus").textContent=`${name} (${S}×${S} px, 300 dpi)`;
 }
 $("exportPng").onclick=()=>exportPng(false);
 $("exportGuides").onclick=()=>exportPng(true);
 
-sampleImage();
+syncUi(); draw();
 })();
 </script>
-
 </body>
 </html>
