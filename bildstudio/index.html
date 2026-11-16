@@ -91,7 +91,7 @@ details.sub-box>div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
 <body>
 <header>
   <h1>Button-Bildstudio</h1>
-  <p class="sub">Logo oder eigenes Motiv gestalten, Texte im Bogen setzen und als druckfertiges PNG mit Beschnittzugabe speichern.</p>
+  <p class="sub">Antifa-Logo oder eigenes Motiv verwenden, Texte einpassen und als druckfertiges PNG oder A4-PDF speichern.</p>
 </header>
 
 <div class="grid">
@@ -105,10 +105,10 @@ details.sub-box>div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
 
     <fieldset><legend>Motiv</legend>
       <div class="tabs" role="tablist" id="modeTabs">
-        <button role="tab" data-mode="logo" aria-selected="true">Logo (2 Flaggen)</button>
+        <button role="tab" data-mode="logo" aria-selected="true">Antifa-Flaggen</button>
         <button role="tab" data-mode="image" aria-selected="false">Eigenes Bild</button>
       </div>
-      <label class="check"><input type="checkbox" id="lock"> 🔒 Motiv fixieren (nicht mehr verschieben, zoomen oder drehen)</label>
+      <label class="check"><input type="checkbox" id="lock"> 🔒 Motiv fixieren (Flaggen bearbeiten)</label>
       <label>Größe <input type="range" id="zoom" min="0.2" max="4" step="0.01" value="1"></label>
       <label>Drehen <input type="range" id="rot" min="-180" max="180" step="1" value="15"></label>
 
@@ -209,12 +209,12 @@ details.sub-box>div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
     <div class="out" id="outBox">
       <h2 class="ph">Ausgabe</h2>
       <button class="btn primary" id="exportPng">🖼 PNG speichern (300 dpi)</button>
-      <button class="btn" id="pdfSheet">🖨 Buttons als PDF (ganze Seite)</button>
-      <div class="out-row"><button class="btn" id="pdfSticker">🏷 Aufkleber-Druckvorlage als PDF (4 × 5)</button>
+      <button class="btn" id="pdfSheet">🖨 35 Buttons als PDF speichern</button>
+      <div class="out-row"><button class="btn" id="pdfSticker">🏷 Aufkleber-Druckvorlage als PDF speichern</button>
         <label class="check" style="gap:6px">Form <select id="stickerShape" style="width:auto"><option value="round">Rund</option><option value="square">Eckig</option></select></label></div>
       <label class="check"><input type="checkbox" id="cutMarks" checked> Mit Schnittmarken</label>
       <label class="check"><input type="checkbox" id="sendPro" checked> Entwurf als Vorlage an StudioPro senden (anonym)</label>
-      <a href="../studiopro/" target="_blank" rel="noopener" class="note" style="color:var(--accent)">➡ Zum DIY-Button-StudioPro</a>
+      <a href="../studiopro/" target="_blank" rel="noopener" class="note" style="color:var(--accent)">➡ Zum kostenlosen DIY-ButtonStudio_1.6.1 Pro wechseln</a>
       <p class="status" id="exportStatus"></p>
       <p class="status" id="outStatus"></p>
     </div>
