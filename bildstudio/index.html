@@ -225,8 +225,8 @@ details.sub-box>div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
       <h2 class="ph">Ausgabe</h2>
       <div class="out-row"><button class="btn" id="pdfSheet">🖨 PDF: ganze Seite Buttons</button>
         <label class="check"><input type="checkbox" id="pdfCutLine" checked> Schnittlinie</label></div>
-      <div class="out-row"><button class="btn" id="toPro">➡ Als Vorlage an StudioPro (5×)</button>
-        <label class="check"><input type="checkbox" id="proWithText"> mit Texten</label></div>
+      <div class="out-row"><button class="btn" id="toPro">➡ In StudioPro öffnen (5×)</button><button class="btn" id="proJson" style="flex:0 1 auto;min-width:0">💾 JSON speichern</button></div>
+      <label class="check"><input type="checkbox" id="proWithText" checked> Texte im StudioPro bearbeitbar übernehmen (sonst als Teil des Bildes)</label>
       <div class="out-row"><button class="btn" id="pdfSticker">🏷 Aufkleber-PDF (4 × 5 auf A4)</button>
         <label class="check" style="gap:6px">Form <select id="stickerShape" style="width:auto"><option value="round">Rund</option><option value="square">Eckig</option></select></label></div>
       <p class="status" id="outStatus"></p>
@@ -714,14 +714,36 @@ $("pdfSticker").onclick = async ()=>{
     st.textContent=`Aufkleber-PDF: 20 Stück à ${size.toFixed(1).replace(".",",")} mm, ${square?"eckig":"rund"}, Rand 10 mm, 1 pt Abstand.`;
   }catch(e){ st.textContent=e.message||String(e); }
 };
+// StudioPro-Projekt (Format "button-studio-pro-8"): Motiv als Bild, Texte wahlweise als bearbeitbare Texte
+const PRO_FONT = {"Archivo Black":"Impact, 'Arial Black', sans-serif","Inter:800":"Arial, Helvetica, sans-serif","Bebas Neue":"'Bebas Neue', Impact, sans-serif",
+  "Anton":"'Anton', Impact, sans-serif","Saira Stencil One":"'Saira Stencil One', Impact, sans-serif","Bangers":"'Bangers', Impact, cursive",
+  "Permanent Marker":"'Permanent Marker', cursive","Pacifico":"'Pacifico', cursive","Caveat":"'Caveat', cursive","Bricolage Grotesque:700":"Arial, Helvetica, sans-serif"};
+function proProject(){
+  const {face, cut}=geom(), SIZES={"25":37,"32":44,"37":49,"50":65,"56":68,"75":87}, bs=String(face), editable=on("proWithText");
+  const u = 290/cut, ptU = mm => +(mm*u).toFixed(1), ptToMm = pt => pt/PT_PER_MM;
+  const P = { app:"button-studio-pro-8", buttonSize: SIZES[bs]?bs:"25", customCut: SIZES[bs]===cut?"":String(cut), count:5, printCutLine:true, view:"edit",
+    bgType:"solid", bgColor1:v("bgColor"), img: renderDataURL(Math.min(1400, Math.round(cut/25.4*300)), {noText: editable}),
+    imgAR:1, imgFit:"slice", imgOpacity:100, imgScale:1, imgRotate:0, imgX:0, imgY:0,
+    topText:"", middleText:"", bottomText:"" };
+  if (editable){
+    Object.assign(P, { gColorType:"solid", gColor1:v("tColor"), gOutline:on("topStrokeOn"), gOutlineColor:v("topStroke"), gOutlineWidth: ptU(ptToMm(num("topStrokeW")))*2,
+      topText:v("topText"), topFont:PRO_FONT[v("topFont")], topAuto:on("topAuto"), topSize: ptU(ptToMm(num("topSize"))), topSpan:num("topSpan"), topSpacing: +(num("topTrack")/10).toFixed(1),
+      middleText:v("midText"), middleFont:PRO_FONT[v("midFont")], middleAuto:false, middleSize: ptU(ptToMm(num("midSize"))), middleY: ptU(num("midY")),
+      bottomText:v("bottomText"), bottomFont:PRO_FONT[v("bottomFont")], bottomAuto:on("bottomAuto"), bottomSize: ptU(ptToMm(num("bottomSize"))), bottomSpan:num("bottomSpan"), bottomSpacing: +(num("bottomTrack")/10).toFixed(1), bottomUpright:true });
+  }
+  return P;
+}
+$("proJson").onclick = ()=>{
+  const json = JSON.stringify(proProject(), null, 1), name = "button_projekt_" + new Date().toISOString().slice(0,10) + ".json";
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([json],{type:"application/json"})); a.download=name; document.body.append(a); a.click(); a.remove();
+  $("outStatus").textContent = name + " gespeichert. Im StudioPro über 📂 Laden öffnen.";
+};
 $("toPro").onclick = ()=>{
-  const st=$("outStatus"), {face, cut}=geom();
-  const SIZES={"25":37,"32":44,"37":49,"50":65,"56":68,"75":87}, bs=String(face);
-  const hand={ v:1, img: renderDataURL(Math.min(1400, Math.round(cut/25.4*300)), {noText: !on("proWithText")}),
-    buttonSize: SIZES[bs] ? bs : "25", customCut: SIZES[bs]===cut ? "" : String(cut), count:5 };
-  try{ localStorage.setItem("bildstudioHandoff", JSON.stringify(hand)); }
-  catch(e){ st.textContent="Übergabe ging nicht: Der Browser-Speicher ist voll oder gesperrt."; return; }
-  st.textContent="StudioPro wird in einem neuen Tab geöffnet. Das Bild ist dort 5× auf dem Druckbogen.";
+  const st=$("outStatus");
+  // Übergabe nur im eigenen Browser; StudioPro löscht sie sofort nach dem Öffnen. Nichts wird hochgeladen.
+  try{ localStorage.setItem("bildstudioHandoff", JSON.stringify({v:2, project: proProject()})); }
+  catch(e){ st.textContent="Übergabe ging nicht: Der Browser-Speicher ist voll oder gesperrt. Nimm stattdessen „JSON speichern“."; return; }
+  st.textContent="StudioPro wird in einem neuen Tab geöffnet.";
   const w = window.open("../studiopro/", "_blank"); if (!w) location.href="../studiopro/";
 };
 

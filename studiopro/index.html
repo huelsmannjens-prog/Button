@@ -2114,14 +2114,11 @@ async function copyText(t, msg) {
 function takeHandoff() {
   let h = null;
   try { h = JSON.parse(localStorage.getItem("bildstudioHandoff") || "null"); localStorage.removeItem("bildstudioHandoff"); } catch (e) {}
-  if (!h || !h.img) return;
+  if (!h || !h.project) return;
   const old = state.sheetItems || [];
-  const keep = old.length && old[0].design.buttonSize === h.buttonSize ? old : [];
-  state = { ...DEFAULTS, sheetItems: keep, buttonSize: h.buttonSize, customCut: h.customCut || "", topText: "", middleText: "", bottomText: "" };
-  setImage(h.img);
-  Object.assign(state, { imgAR: 1, imgScale: 1, imgRotate: 0, imgX: 0, imgY: 0, imgFit: "slice", imgOpacity: 100 });
-  render(); addToSheet(h.count || 5);
-  if (old.length && !keep.length) setTimeout(() => toast("Neue Buttongröße – die alte Druckbogen-Liste wurde geleert."), 2500);
+  state = { ...DEFAULTS, ...migrate(h.project), sheetItems: old.length && old[0].design.buttonSize === h.project.buttonSize ? old : [] };
+  setImage(state.img); clampCount(); sel = null; render();
+  if (state.sheetItems.length) addToSheet(5); else toast("Vorlage aus dem Bildstudio übernommen – 5 Buttons auf dem Bogen");
 }
 // ================= Start =================
 $$("[data-style]").forEach(el => el.innerHTML = styleEditor(el.dataset.style));
