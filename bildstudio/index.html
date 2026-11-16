@@ -116,7 +116,7 @@ details.sub-box>div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
       </div>
       <label class="check"><input type="checkbox" id="lock"> 🔒 Motiv fixieren (nicht mehr verschieben, zoomen oder drehen)</label>
       <label>Größe <input type="range" id="zoom" min="0.2" max="4" step="0.01" value="1"></label>
-      <label>Drehen <input type="range" id="rot" min="-180" max="180" step="1" value="0"></label>
+      <label>Drehen <input type="range" id="rot" min="-180" max="180" step="1" value="15"></label>
 
       <div id="logoBox" style="display:flex;flex-direction:column;gap:10px">
         <label style="gap:6px">Was bearbeitest du gerade? (oder in der Vorschau auf eine Flagge tippen)
@@ -128,7 +128,7 @@ details.sub-box>div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
         </label>
         <div class="row">
           <label class="check"><input type="checkbox" id="lgRing" checked> Kreis ums Logo</label>
-          <label class="check"><input type="checkbox" id="lgMirror"> Spiegeln</label>
+          <label class="check"><input type="checkbox" id="lgMirror" checked> Spiegeln</label>
         </div>
         <div class="row">
           <label>Kreisfüllung<input type="color" id="lgFill" value="#ffffff"></label>
@@ -247,19 +247,19 @@ const fontOpts = sel => FONTS.map(([val,n])=>`<option value="${val}"${val===sel?
 const rng = (id,label,min,max,step,val,unit="") => `<label>${label} <span class="val" data-out="${id}" data-unit="${unit}"></span><input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}"></label>`;
 
 const TEXT_DEF = {
-  top:   {text:"ANTIFASCHISTISCHE", font:"Archivo Black", size:3.2, track:4, span:200, auto:true, inset:1.3},
-  mid:   {text:"", font:"Archivo Black", size:5, width:100, y:0},
-  bottom:{text:"AKTION", font:"Archivo Black", size:3.2, track:12, span:90, auto:false, inset:1.3}
+  top:   {text:"ANTIFASCHISTISCHE", font:"Archivo Black", size:6, track:4, span:200, auto:false, inset:1.3},
+  mid:   {text:"", font:"Archivo Black", size:6, width:100, y:0},
+  bottom:{text:"AKTION", font:"Archivo Black", size:6, track:12, span:90, auto:false, inset:1.3}
 };
 document.querySelectorAll("[data-text]").forEach(box=>{
   const k = box.dataset.text, d = TEXT_DEF[k];
   let h = `<input type="text" id="${k}Text" value="${esc(d.text)}" aria-label="Text"><label>Schrift<select id="${k}Font">${fontOpts(d.font)}</select></label>`;
   if (k==="mid"){
-    h += `<div class="row">${rng(k+"Size","Größe",1.5,16,0.1,d.size," mm")}${rng(k+"Width","Breite",40,200,1,d.width," %")}</div>`
+    h += `<div class="row">${rng(k+"Size","Schriftgröße",3,45,0.1,d.size," pt")}${rng(k+"Width","Breite",40,200,1,d.width," %")}</div>`
        + rng(k+"Y","Höhe verschieben",-12,12,0.1,d.y," mm");
   } else {
-    h += `<label class="check"><input type="checkbox" id="${k}Auto"${d.auto?" checked":""}> Größe automatisch an die Bogenlänge anpassen</label>`
-       + `<div class="row">${rng(k+"Size","Größe",1.2,10,0.1,d.size," mm")}${rng(k+"Track","Laufweite",-10,80,1,d.track," %")}</div>`
+    h += `<label class="check"><input type="checkbox" id="${k}Auto"${d.auto?" checked":""}> Schriftgröße automatisch an die Bogenlänge anpassen (optional)</label>`
+       + `<div class="row">${rng(k+"Size","Schriftgröße",3,28,0.1,d.size," pt")}${rng(k+"Track","Laufweite",-10,80,1,d.track," %")}</div>`
        + `<div class="row">${rng(k+"Span","Bogenlänge",20,330,1,d.span,"°")}${rng(k+"Inset","Abstand zum Rand",0,8,0.1,d.inset," mm")}</div>`;
   }
   box.innerHTML = h;
@@ -279,7 +279,7 @@ document.querySelectorAll("[data-flag]").forEach(box=>{
     </div>
     <div class="row"><label>Stiel<input type="color" id="${p}Pole" value="#000000"></label><label>Rahmen<input type="color" id="${p}Frame" value="#ffffff"></label></div>
     <div class="row"><label class="check"><input type="checkbox" id="${p}FrameOn" checked> Rahmen um Flagge und Stiel</label>${rng(p+"FrameW","Rahmenbreite",0,10,0.5,3,"")}</div>
-    <div class="row">${rng(p+"Rot","Neigung",-45,45,1,d.rot,"°")}${rng(p+"Scale","Größe",50,150,1,100," %")}</div>
+    <div class="row">${rng(p+"Rot","Neigung",-45,45,1,d.rot,"°")}${rng(p+"Scale","Größe",50,160,1,115," %")}</div>
     <div class="row">${rng(p+"X","Links/rechts",-50,50,1,0,"")}${rng(p+"Y","Hoch/runter",-50,50,1,0,"")}</div>`;
 });
 const flagFill = {1:"solid", 2:"solid"};
@@ -327,6 +327,7 @@ function syncUi(){
 }
 
 /* ---------- Zeichnen ---------- */
+const PT_PER_MM = 72/25.4; // 1 mm = 2,835 pt
 function geom(){ const face = num("faceMm")||25, cut = Math.max(num("cutMm")||37, face); return {face, cut}; }
 function fontCss(sel, px){ const [fam, w] = sel.split(":"); return `${w||"400"} ${px}px "${fam}"`; }
 
@@ -407,7 +408,7 @@ function render(g, S, guides){
   arcField(g, "bottom", R, pxmm, face, sw, false);
   const mt = v("midText");
   if (mt){
-    const px = num("midSize")*pxmm; g.font = fontCss(v("midFont"), px);
+    const px = num("midSize")/PT_PER_MM*pxmm; g.font = fontCss(v("midFont"), px);
     g.save(); g.translate(R, R + num("midY")*pxmm); g.scale(num("midWidth")/100, 1);
     if (sw>0){ g.lineWidth=sw*2; g.strokeText(mt,0,0); } g.fillText(mt,0,0); g.restore();
   }
@@ -422,7 +423,7 @@ function ring(g,R,r,c){ g.strokeStyle=c; g.beginPath(); g.arc(R,R,r,0,Math.PI*2)
 function arcField(g, k, R, pxmm, face, sw, top){
   const text = v(k+"Text"); if(!text) return;
   const outer = (face/2 - num(k+"Inset"))*pxmm, track = num(k+"Track")/100;
-  let px = num(k+"Size")*pxmm;
+  let px = num(k+"Size")/PT_PER_MM*pxmm;
   const measure = p => { g.font = fontCss(v(k+"Font"), p); const ws=[...text].map(c=>g.measureText(c).width); return {ws, total: ws.reduce((a,b)=>a+b,0) + track*p*0.5*(ws.length-1)}; };
   let m = measure(px);
   if (on(k+"Auto")){ // Größe so wählen, dass der Text die Bogenlänge füllt
@@ -447,7 +448,7 @@ function draw(){ cancelAnimationFrame(raf); raf = requestAnimationFrame(()=>{ sy
 /* ---------- Steuerung ---------- */
 document.addEventListener("input", e=>{ if(e.target.closest(".edit")) draw(); });
 $("preset").addEventListener("input", ()=>{ const [f,c]=v("preset").split(","); $("faceMm").value=f; $("cutMm").value=c; draw(); });
-$("resetImg").onclick = ()=>{ state.ox=state.oy=0; $("zoom").value=1; $("rot").value=0; draw(); };
+$("resetImg").onclick = ()=>{ state.ox=state.oy=0; $("zoom").value=1; $("rot").value = state.mode==="logo" ? 15 : 0; draw(); };
 if (document.fonts){ document.fonts.ready.then(draw); FONTS.forEach(([f])=>document.fonts.load(fontCss(f,40)).then(draw).catch(()=>{})); }
 
 // Ziehen, Mausrad, zwei Finger
@@ -484,7 +485,7 @@ function applyMove(t, s0, dx, dy){
 }
 function applyZoom(t, s0, f){
   if (t.kind==="all") setRange("zoom",clamp(s0.z*f,.2,4));
-  else if (t.kind==="flag") setRange("f"+t.n+"Scale",clamp(s0.z*f,50,150));
+  else if (t.kind==="flag") setRange("f"+t.n+"Scale",clamp(s0.z*f,50,160));
   else setRange("f"+t.n+"ImgZoom",clamp(s0.z*f,.3,5));
 }
 const hitCv=document.createElement("canvas"), hitG=hitCv.getContext("2d");
