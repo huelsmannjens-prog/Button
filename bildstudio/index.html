@@ -35,6 +35,10 @@ header{max-width:1400px;margin:0 auto 16px}
 .col-left{grid-area:left}.col-right{grid-area:right}
 .stage{grid-area:stage;position:sticky;top:12px}
 .ph{font-family:var(--display);font-size:15px;margin:0}
+.out{width:100%;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:12px}
+.out-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.out-row .btn{flex:1;min-width:200px;text-align:left}
+.col-right .out{border:1px solid var(--line);border-radius:10px;padding:16px;background:var(--panel)}
 @media (max-width:1099px){
   .grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"stage left" "stage right"}
 }
@@ -217,6 +221,16 @@ details.sub-box>div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
       <button class="btn" id="exportGuides">PNG mit Hilfslinien</button>
     </div>
     <p class="status" id="exportStatus"></p>
+    <div class="out" id="outBox">
+      <h2 class="ph">Ausgabe</h2>
+      <div class="out-row"><button class="btn" id="pdfSheet">🖨 PDF: ganze Seite Buttons</button>
+        <label class="check"><input type="checkbox" id="pdfCutLine" checked> Schnittlinie</label></div>
+      <div class="out-row"><button class="btn" id="toPro">➡ Als Vorlage an StudioPro (5×)</button>
+        <label class="check"><input type="checkbox" id="proWithText"> mit Texten</label></div>
+      <div class="out-row"><button class="btn" id="pdfSticker">🏷 Aufkleber-PDF (4 × 5 auf A4)</button>
+        <label class="check" style="gap:6px">Form <select id="stickerShape" style="width:auto"><option value="round">Rund</option><option value="square">Eckig</option></select></label></div>
+      <p class="status" id="outStatus"></p>
+    </div>
   </section>
   <div class="col col-right">
     <section class="panel edit" aria-label="Texte"><fieldset><legend>Texte</legend>
@@ -349,9 +363,9 @@ function flagTransform(g, n, L){
   g.rotate(num(p+"Rot")*Math.PI/180);
   g.scale(s, s);
 }
-function logoTransform(g, S){ // gibt den Logo-Radius in Pixeln zurück
-  const {face, cut} = geom(); const pxmm = S/cut, R = S/2;
-  g.translate(R + state.ox*S, R + state.oy*S); g.rotate(num("rot")*Math.PI/180);
+function logoTransform(g, S, viewMm){ // gibt den Logo-Radius in Pixeln zurück
+  const {face, cut} = geom(); const pxmm = S/(viewMm||cut), R = S/2, C = cut*pxmm;
+  g.translate(R + state.ox*C, R + state.oy*C); g.rotate(num("rot")*Math.PI/180);
   return (face/2)*pxmm*0.62*num("zoom");
 }
 function drawFlag(g, n, L){
@@ -380,14 +394,16 @@ function drawFlag(g, n, L){
   g.restore();
 }
 
-function render(g, S, guides){
+// opts.viewMm: welcher Durchmesser (mm) die Fläche füllt (Standard: Zuschnitt; Aufkleber: Button-Vorderseite)
+// opts.square: eckig statt rund (Hintergrund füllt das Quadrat); opts.noText: ohne Texte
+function render(g, S, guides, opts={}){
   if (g===ctx) textHit = {};
-  const {face, cut} = geom(); const pxmm = S / cut; const R = S/2;
+  const {face, cut} = geom(); const pxmm = S / (opts.viewMm||cut); const R = S/2, C = cut*pxmm;
   g.save(); g.clearRect(0,0,S,S);
-  g.beginPath(); g.arc(R,R,R,0,Math.PI*2); g.clip();
+  if (!opts.square){ g.beginPath(); g.arc(R,R,R,0,Math.PI*2); g.clip(); }
   g.fillStyle = v("bgColor"); g.fillRect(0,0,S,S);
   g.save();
-  const L = logoTransform(g, S);
+  const L = logoTransform(g, S, opts.viewMm);
   if (state.mode==="logo"){
     if (on("lgRing")){ g.beginPath(); g.arc(0,0,L,0,Math.PI*2); g.fillStyle=v("lgFill"); g.fill(); }
     g.save(); g.beginPath(); g.arc(0,0,L*0.96,0,Math.PI*2); g.clip();
@@ -400,11 +416,12 @@ function render(g, S, guides){
     g.restore();
     if (on("lgRing")){ g.beginPath(); g.arc(0,0,L,0,Math.PI*2); g.lineWidth=L*0.07; g.strokeStyle=v("lgLine"); g.stroke(); }
   } else if (state.img){
-    const im = state.img, base = Math.max(S/im.width, S/im.height) * num("zoom");
+    const im = state.img, base = Math.max(C/im.width, C/im.height) * num("zoom");
     g.filter = `brightness(${v("fBright")}%) contrast(${v("fContrast")}%) saturate(${v("fSat")}%) ${v("fEffect")}`.trim();
     g.drawImage(im, -im.width*base/2, -im.height*base/2, im.width*base, im.height*base);
   }
   g.restore();
+  if (opts.noText){ g.restore(); return; }
   // Texte
   g.fillStyle = v("tColor"); g.lineJoin = "round"; g.textBaseline = "middle"; g.textAlign = "center";
   // Textrahmen je Feld: Breite in pt, Strich doppelt so breit, weil die Füllung die innere Hälfte verdeckt
@@ -653,6 +670,60 @@ async function exportPng(guides){
 }
 $("exportPng").onclick=()=>exportPng(false);
 $("exportGuides").onclick=()=>exportPng(true);
+
+/* ---------- Ausgabe: PDF-Bogen, StudioPro, Aufkleber ---------- */
+// Am Handy die Ausgabe unter die Texte verschieben, damit die angeheftete Vorschau klein bleibt
+const mq = matchMedia("(max-width:699px)");
+function placeOut(){ const box=$("outBox"); (mq.matches ? document.querySelector(".col-right") : document.querySelector(".stage")).append(box); }
+mq.addEventListener ? mq.addEventListener("change", placeOut) : mq.addListener(placeOut); placeOut();
+
+function renderDataURL(sizePx, opts){ const c=document.createElement("canvas"); c.width=c.height=sizePx; render(c.getContext("2d"), sizePx, false, opts); return c.toDataURL("image/png"); }
+async function jspdf(){
+  if (!window.jspdf) await new Promise((res,rej)=>{ const sc=document.createElement("script"); sc.src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"; sc.onload=res; sc.onerror=()=>rej(new Error("PDF-Bibliothek konnte nicht geladen werden. Prüfe die Internetverbindung.")); document.head.append(sc); });
+  return new window.jspdf.jsPDF({unit:"mm", format:"a4", orientation:"portrait"});
+}
+const PAGE = {w:210, h:297};
+$("pdfSheet").onclick = async ()=>{
+  const st=$("outStatus"); st.textContent="PDF wird erstellt …";
+  try{
+    const {face, cut} = geom(), margin=5, gap=1;
+    const cols=Math.floor((PAGE.w-2*margin+gap)/(cut+gap)), rows=Math.floor((PAGE.h-2*margin+gap)/(cut+gap));
+    const x0=(PAGE.w-(cols*cut+(cols-1)*gap))/2, y0=(PAGE.h-(rows*cut+(rows-1)*gap))/2;
+    const img=renderDataURL(Math.round(cut/25.4*300));
+    const doc=await jspdf();
+    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+      const x=x0+c*(cut+gap), y=y0+r*(cut+gap);
+      doc.addImage(img,"PNG",x,y,cut,cut,"btn","FAST");
+      if (on("pdfCutLine")){ doc.setDrawColor(150); doc.setLineWidth(0.15); doc.circle(x+cut/2,y+cut/2,cut/2,"S"); }
+    }
+    doc.save(`buttons-${face}mm-${cols*rows}stueck.pdf`);
+    st.textContent=`PDF mit ${cols*rows} Buttons (${cols} × ${rows}, Zuschnitt ${cut} mm). Mit 100 % / „Tatsächliche Größe“ drucken.`;
+  }catch(e){ st.textContent=e.message||String(e); }
+};
+$("pdfSticker").onclick = async ()=>{
+  const st=$("outStatus"); st.textContent="PDF wird erstellt …";
+  try{
+    const margin=10, gapMm = 25.4/72; // 1 pt Abstand als Schnittkante
+    const cols=4, rows=5, size=Math.min((PAGE.w-2*margin-(cols-1)*gapMm)/cols, (PAGE.h-2*margin-(rows-1)*gapMm)/rows);
+    const x0=(PAGE.w-(cols*size+(cols-1)*gapMm))/2, y0=(PAGE.h-(rows*size+(rows-1)*gapMm))/2;
+    const square = v("stickerShape")==="square";
+    const img=renderDataURL(Math.round(size/25.4*300), {viewMm: geom().face, square});
+    const doc=await jspdf();
+    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) doc.addImage(img,"PNG",x0+c*(size+gapMm),y0+r*(size+gapMm),size,size,"stk","FAST");
+    doc.save(`aufkleber-4x5-${square?"eckig":"rund"}.pdf`);
+    st.textContent=`Aufkleber-PDF: 20 Stück à ${size.toFixed(1).replace(".",",")} mm, ${square?"eckig":"rund"}, Rand 10 mm, 1 pt Abstand.`;
+  }catch(e){ st.textContent=e.message||String(e); }
+};
+$("toPro").onclick = ()=>{
+  const st=$("outStatus"), {face, cut}=geom();
+  const SIZES={"25":37,"32":44,"37":49,"50":65,"56":68,"75":87}, bs=String(face);
+  const hand={ v:1, img: renderDataURL(Math.min(1400, Math.round(cut/25.4*300)), {noText: !on("proWithText")}),
+    buttonSize: SIZES[bs] ? bs : "25", customCut: SIZES[bs]===cut ? "" : String(cut), count:5 };
+  try{ localStorage.setItem("bildstudioHandoff", JSON.stringify(hand)); }
+  catch(e){ st.textContent="Übergabe ging nicht: Der Browser-Speicher ist voll oder gesperrt."; return; }
+  st.textContent="StudioPro wird in einem neuen Tab geöffnet. Das Bild ist dort 5× auf dem Druckbogen.";
+  const w = window.open("../studiopro/", "_blank"); if (!w) location.href="../studiopro/";
+};
 
 syncUi(); draw();
 })();
