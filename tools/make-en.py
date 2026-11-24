@@ -18,7 +18,6 @@ SRC = {
         ('ph("＋ Bild antippen"', 'ph("＋ Tap for image"'),
     ],
     "bildstudio": [
-        ('value="Sonnenblume mit fröhlichem Gesicht"', 'value="Sunflower with a happy face"'),
     ],
 }
 COMMON = [

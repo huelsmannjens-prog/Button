@@ -70,6 +70,13 @@ input[type=color]{width:100%;height:36px;border:1px solid var(--line);border-rad
 .results button:hover,.results button:focus-visible{border-color:var(--accent)}
 .results img{width:100%;height:100%;object-fit:cover;display:block}
 .note{font-size:12px;color:var(--muted);margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:1px solid var(--line);background:var(--soft);color:var(--fg);border-radius:999px;padding:4px 10px;font:500 12px var(--body);cursor:pointer}
+.chips button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+#genResults{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+.results button{position:relative}
+.results button .lic{position:absolute;left:3px;bottom:3px;background:rgba(0,0,0,.6);color:#fff;font:600 9px var(--body);padding:1px 4px;border-radius:3px}
+details summary{cursor:pointer;font-size:13px;font-weight:600}
 .status{font-size:12px;color:var(--warn);min-height:1em;margin:0}
 .stage{display:flex;flex-direction:column;align-items:center;gap:12px}
 #preview{width:100%;max-width:440px;aspect-ratio:1;touch-action:none;cursor:grab;border-radius:8px;background:repeating-conic-gradient(var(--soft) 0 25%,transparent 0 50%) 0 0/20px 20px}
@@ -164,33 +171,63 @@ details.sub-box>div{display:flex;flex-direction:column;gap:10px;margin-top:10px}
     </div>
 
     <div id="pane-search" class="pane" style="display:flex;flex-direction:column;gap:10px">
-      <label>Suchbegriff (Englisch liefert meist mehr Treffer)<input type="text" id="q" value="sunflower"></label>
+      <label>Wonach suchst du? (gern auf Deutsch)<input type="text" id="q" placeholder="z. B. Faust mit Blume, Friedenstaube, Regenbogen"></label>
+      <label class="check"><input type="checkbox" id="aiSearch" checked> KI-Suchhilfe: macht daraus passende englische Suchbegriffe</label>
       <div class="row">
-        <label class="check"><input type="checkbox" id="commercial" checked> Kommerziell nutzbar</label>
-        <label class="check"><input type="checkbox" id="square"> Nur quadratisch</label>
+        <label style="flex:1;min-width:130px">Art<select id="qKind"><option value="illustration,digitized_artwork">Grafik &amp; Illustration</option><option value="">Alles</option><option value="photograph">Foto</option></select></label>
+        <label style="flex:1;min-width:130px">Lizenz<select id="qLic"><option value="commercial">Kommerziell nutzbar</option><option value="free">Ohne Namensnennung (CC0/gemeinfrei)</option><option value="">Alle</option></select></label>
       </div>
+      <label class="check"><input type="checkbox" id="square"> Nur quadratische Bilder</label>
       <button class="btn primary" id="doSearch">Suchen</button>
+      <div class="chips" id="qTerms"></div>
       <p class="status" id="searchStatus"></p>
       <div class="results" id="results"></div>
-      <p class="note">Quelle: Openverse (Creative-Commons- und gemeinfreie Bilder aus Wikimedia, Flickr und mehr). Lizenz und Urheber stehen unter der Vorschau; bei CC BY bitte nennen.</p>
+      <button class="btn" id="moreResults" hidden>Mehr laden</button>
+      <p class="note">Quelle: Openverse (Creative-Commons- und gemeinfreie Bilder aus Wikimedia, Flickr und mehr). Die Treffer sind nach Eignung für Buttons sortiert (quadratisch, groß genug, Grafik). Lizenz und Urheber stehen unter der Vorschau; bei CC BY bitte nennen.</p>
     </div>
 
     <div id="pane-gen" class="pane" hidden style="display:flex;flex-direction:column;gap:10px">
-      <label>Thema<input type="text" id="gTheme" value="Sonnenblume mit fröhlichem Gesicht"></label>
-      <label>Stil<select id="gStyle">
-        <option value="flat vector illustration, bold outlines, limited color palette">Flache Vektorgrafik</option>
-        <option value="retro 70s poster style, warm colors, halftone texture">Retro 70er</option>
-        <option value="cute kawaii sticker style, thick white outline">Kawaii-Sticker</option>
-        <option value="watercolor painting, soft edges">Aquarell</option>
-        <option value="photorealistic, studio lighting">Fotorealistisch</option>
-        <option value="black and white line art, high contrast">Strichzeichnung s/w</option>
-      </select></label>
-      <label>Zusatz (optional)<textarea id="gExtra" placeholder="z. B. Hintergrund hellblau, keine Schrift im Bild"></textarea></label>
+      <label>Was soll auf dem Button zu sehen sein? (Deutsch)<textarea id="gTheme" placeholder="z. B. Eine Faust, die eine Sonnenblume hält"></textarea></label>
+      <div class="row">
+        <label style="flex:1;min-width:140px">Stil<select id="gStyle">
+          <option value="flat vector illustration, bold clean outlines, limited color palette">Flache Vektorgrafik</option>
+          <option value="linocut print, bold black carved lines, high contrast, slightly rough edges">Linolschnitt</option>
+          <option value="stencil graffiti style, two-tone, crisp cut-out shapes">Schablone / Stencil</option>
+          <option value="pop art, halftone dots, bold black outlines, vivid flat colors">Pop-Art</option>
+          <option value="comic illustration, thick ink outlines, cel shading">Comic</option>
+          <option value="die-cut sticker style, thick white outline around the subject">Sticker</option>
+          <option value="retro 70s poster style, warm colors, halftone texture">Retro 70er</option>
+          <option value="cute kawaii style, round shapes, thick outline">Kawaii</option>
+          <option value="minimal line icon, single weight lines, very simple">Minimal-Icon</option>
+          <option value="watercolor painting, soft edges">Aquarell</option>
+          <option value="photorealistic, studio lighting">Fotorealistisch</option>
+          <option value="black and white line art, high contrast">Strichzeichnung s/w</option>
+        </select></label>
+        <label style="flex:1;min-width:140px">Farben<select id="gColors">
+          <option value="few strong colors">Wenige kräftige Farben</option>
+          <option value="only black, white and red">Schwarz, Weiß, Rot</option>
+          <option value="only black and white">Nur Schwarz-Weiß</option>
+          <option value="button">Passend zur Buttonfarbe</option>
+          <option value="">Frei</option>
+        </select></label>
+      </div>
+      <label class="check"><input type="checkbox" id="gArcSpace" checked> Platz für Bogentext oben und unten lassen</label>
+      <label class="check"><input type="checkbox" id="gTransparent"> Transparenter Hintergrund (Motiv sitzt direkt auf der Buttonfarbe)</label>
+      <label>Zusatz (optional)<input type="text" id="gExtra" placeholder="z. B. Blick nach links, keine Hände"></label>
+      <button class="btn" id="doPrompt">✨ Prompt mit KI ausarbeiten</button>
+      <label>Prompt (Englisch, kannst du ändern – leer = automatisch)<textarea id="gPrompt" style="min-height:90px"></textarea></label>
+      <div class="row">
+        <label style="flex:1;min-width:110px">Varianten<select id="gCount"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
+        <label style="flex:1;min-width:150px">Qualität<select id="gQuality"><option value="low">Entwurf (günstig)</option><option value="medium" selected>Mittel</option><option value="high">Hoch (teurer)</option></select></label>
+      </div>
+      <p class="note" id="gCost"></p>
       <label>OpenAI-API-Schlüssel<input type="password" id="apiKey" placeholder="sk-…" autocomplete="off"></label>
       <label class="check"><input type="checkbox" id="rememberKey"> Schlüssel in diesem Browser merken</label>
       <button class="btn primary" id="doGen">Bild erzeugen</button>
       <p class="status" id="genStatus"></p>
-      <p class="note">Das Motiv wird mittig und rund-tauglich angefragt, ohne Text im Bild. Kosten laut OpenAI-Preisliste, grob einige Cent pro Bild. Der Schlüssel geht nur an api.openai.com.</p>
+      <div class="results" id="genResults"></div>
+      <details id="genHistBox"><summary>Zuletzt erzeugt (ohne neue Kosten wieder verwenden)</summary><div class="results" id="genHistory" style="margin-top:8px"></div></details>
+      <p class="note">Die KI-Suchhilfe und der Prompt-Assistent kosten nur Bruchteile eines Cents. Der Schlüssel geht nur an api.openai.com.</p>
     </div>
 
     <div id="pane-up" class="pane" hidden>
@@ -562,42 +599,172 @@ function loadBlob(blob, credit){ return loadImage(URL.createObjectURL(blob), cre
 function currentImage(){ const t=target(); return t==="main" ? state.img : state.flagImg[t==="flag1"?1:2]; }
 
 /* ---------- Suche (Openverse) ---------- */
+// ---------- KI-Helfer (OpenAI-Textmodell, sehr günstig) ----------
+const TEXT_MODELS=["gpt-4.1-mini","gpt-4o-mini"];
+async function askAI(key, system, user){
+  let last="";
+  for (const model of TEXT_MODELS){
+    const r=await fetch("https://api.openai.com/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},
+      body:JSON.stringify({model,temperature:0.6,response_format:{type:"json_object"},messages:[{role:"system",content:system},{role:"user",content:user}]})});
+    const d=await r.json().catch(()=>({}));
+    if (r.ok){ try{ return JSON.parse(d.choices[0].message.content); }catch(e){ throw new Error("Die KI-Antwort war unlesbar."); } }
+    last=d.error?.message||String(r.status);
+    if (!/model/i.test(last)) throw new Error("OpenAI: "+last);
+  }
+  throw new Error("OpenAI: "+last);
+}
+// Ohne Schlüssel: kostenlose Übersetzung (MyMemory), nur ein Begriff
+async function freeTranslate(q){
+  try{ const r=await fetch("https://api.mymemory.translated.net/get?langpair=de|en&q="+encodeURIComponent(q)); const d=await r.json(); const t=d.responseData?.translatedText; return t && !/MYMEMORY|INVALID/i.test(t) ? t : q; }catch(e){ return q; }
+}
+async function searchTerms(q){
+  if (!on("aiSearch")) return [q];
+  const key=v("apiKey").trim();
+  if (!key) return [...new Set([await freeTranslate(q), q])].slice(0,2);
+  const d=await askAI(key,
+    "You help find images for small round pin-back buttons (25 mm) on Openverse (Creative Commons image search). The user writes German. "+
+    "Return JSON {\"terms\":[...]} with 4 short English search queries (1-3 words each), most promising first: the literal translation, a simpler/iconic variant (e.g. 'icon', 'clipart', 'silhouette', 'logo-like' when graphics fit), and close synonyms. No quotes, no hashtags.", q);
+  const t=(d.terms||[]).map(x=>String(x).trim()).filter(Boolean);
+  return t.length ? t.slice(0,4) : [q];
+}
+// Eignung für einen runden Button: quadratisch, groß genug, Grafik statt Foto, freie Lizenz
+function fitScore(it){
+  const w=+it.width||0, h=+it.height||0, sq=w&&h ? Math.min(w,h)/Math.max(w,h) : 0.6, px=Math.min(w,h)||500;
+  let sc = sq*3 + Math.min(px,1200)/1200*2;
+  if (/illustration|digitized_artwork/.test(it.category||"")) sc+=1;
+  if (/^(cc0|pdm)$/.test(it.license)) sc+=0.5;
+  if (px<400) sc-=2;
+  return sc;
+}
+const srch={terms:[], active:null, page:1, seen:new Set(), items:[]};
+function openverseParams(term, page){
+  const p=new URLSearchParams({q:term, page_size:"20", page:String(page), mature:"false"});
+  const lic=v("qLic"); if(lic==="commercial") p.set("license_type","commercial"); if(lic==="free") p.set("license","cc0,pdm");
+  if(v("qKind")) p.set("category", v("qKind"));
+  if(on("square")) p.set("aspect_ratio","square");
+  return p;
+}
+async function fetchBatch(){
+  const terms = srch.active ? [srch.active] : srch.terms;
+  const res = await Promise.all(terms.map(t=>fetch("https://api.openverse.org/v1/images/?"+openverseParams(t, srch.page)).then(r=>{ if(!r.ok) throw new Error("Openverse antwortet mit Status "+r.status+"."); return r.json(); })));
+  let total=0, fresh=[];
+  res.forEach(d=>{ total+=d.result_count||0; (d.results||[]).forEach(it=>{ if(!srch.seen.has(it.id)){ srch.seen.add(it.id); fresh.push(it); } }); });
+  fresh.sort((a,b)=>fitScore(b)-fitScore(a));
+  srch.items.push(...fresh);
+  fresh.forEach(addResult);
+  $("moreResults").hidden = !fresh.length;
+  $("searchStatus").textContent = srch.items.length ? `${srch.items.length} Bilder angezeigt, nach Button-Eignung sortiert.` : "Keine Treffer. Versuch einen anderen Begriff oder andere Filter.";
+}
+function addResult(it){
+  const b=document.createElement("button"); b.title=`${it.title||""} · ${it.license.toUpperCase()} ${it.license_version||""}`;
+  const im=document.createElement("img"); im.loading="lazy"; im.alt=it.title||""; im.src=it.thumbnail; b.append(im);
+  const lic=`CC ${it.license.toUpperCase()} ${it.license_version||""}`.replace("CC PDM","Public Domain").replace("CC CC0","CC0");
+  if (/^(cc0|pdm)$/.test(it.license)){ const t=document.createElement("span"); t.className="lic"; t.textContent=it.license==="pdm"?"PD":"CC0"; b.append(t); }
+  const credit=`„${esc(it.title||"Ohne Titel")}“ von ${esc(it.creator||"unbekannt")}, ${esc(lic)} · <a href="${esc(it.foreign_landing_url)}" target="_blank" rel="noopener">Quelle</a>`;
+  b.onclick=()=>{ $("searchStatus").textContent="Lade Bild …"; loadImage(it.url, credit, it.thumbnail+"?full_size=true").then(()=>$("searchStatus").textContent="", e=>$("searchStatus").textContent=e.message); };
+  $("results").append(b);
+}
+function showTerms(){
+  $("qTerms").innerHTML="";
+  if (srch.terms.length<2) return;
+  const mk=(label,val)=>{ const b=document.createElement("button"); b.type="button"; b.textContent=label; b.setAttribute("aria-pressed", String(srch.active===val));
+    b.onclick=()=>{ srch.active=val; restart(); }; $("qTerms").append(b); };
+  mk("Alle Begriffe", null); srch.terms.forEach(t=>mk(t,t));
+}
+async function restart(){
+  srch.page=1; srch.seen=new Set(); srch.items=[]; $("results").innerHTML=""; showTerms();
+  $("searchStatus").textContent="Suche läuft …";
+  try{ await fetchBatch(); }catch(e){ $("searchStatus").textContent = netMsg(e); }
+}
 async function search(){
   const q=v("q").trim(); if(!q) return;
-  $("searchStatus").textContent="Suche läuft …"; $("results").innerHTML="";
-  const p=new URLSearchParams({q, page_size:"40", mature:"false"});
-  if(on("commercial")) p.set("license_type","commercial");
-  if(on("square")) p.set("aspect_ratio","square");
-  try{
-    const r=await fetch("https://api.openverse.org/v1/images/?"+p);
-    if(!r.ok) throw new Error("Openverse antwortet mit Status "+r.status+".");
-    const d=await r.json();
-    $("searchStatus").textContent = d.results.length ? `${d.result_count} Treffer, ${d.results.length} angezeigt.` : "Keine Treffer. Versuch einen anderen oder englischen Begriff.";
-    d.results.forEach(it=>{
-      const b=document.createElement("button"); b.title=`${it.title||""} · ${it.license.toUpperCase()} ${it.license_version||""}`;
-      const im=document.createElement("img"); im.loading="lazy"; im.alt=it.title||""; im.src=it.thumbnail; b.append(im);
-      const lic=`CC ${it.license.toUpperCase()} ${it.license_version||""}`.replace("CC PDM","Public Domain").replace("CC CC0","CC0");
-      const credit=`„${esc(it.title||"Ohne Titel")}“ von ${esc(it.creator||"unbekannt")}, ${esc(lic)} · <a href="${esc(it.foreign_landing_url)}" target="_blank" rel="noopener">Quelle</a>`;
-      b.onclick=()=>{ $("searchStatus").textContent="Lade Bild …"; loadImage(it.url, credit, it.thumbnail+"?full_size=true").then(()=>$("searchStatus").textContent="", e=>$("searchStatus").textContent=e.message); };
-      $("results").append(b);
-    });
-  }catch(e){ $("searchStatus").textContent = netMsg(e); }
+  $("doSearch").disabled=true; $("searchStatus").textContent = on("aiSearch") ? "KI sucht passende Begriffe …" : "Suche läuft …";
+  try{ srch.terms = await searchTerms(q); }catch(e){ srch.terms=[q]; $("searchStatus").textContent=netMsg(e); }
+  srch.active=null; await restart();
+  $("doSearch").disabled=false;
 }
 function netMsg(e){ return (e instanceof TypeError) ? "Keine Verbindung zum Dienst. Prüfe die Internetverbindung." : e.message; }
 $("doSearch").onclick=search; $("q").addEventListener("keydown",e=>{ if(e.key==="Enter") search(); });
+$("moreResults").onclick=async()=>{ srch.page++; $("moreResults").disabled=true; try{ await fetchBatch(); }catch(e){ $("searchStatus").textContent=netMsg(e); } $("moreResults").disabled=false; };
+["qKind","qLic","square"].forEach(id=>$(id).addEventListener("change",()=>{ if(srch.terms.length) restart(); }));
 
 /* ---------- KI erzeugen und bearbeiten (OpenAI) ---------- */
 const savedKey=store.get("bs_openai_key"); if(savedKey){ $("apiKey").value=savedKey; $("rememberKey").checked=true; }
 function apiKey(statusEl){ const key=v("apiKey").trim(); if(!key){ statusEl.textContent="Bitte im Bereich „KI erzeugen“ einen OpenAI-API-Schlüssel eintragen."; return null; } store.set("bs_openai_key", on("rememberKey")?key:null); return key; }
-$("doGen").onclick=async()=>{
+// ---------- Prompt für ein Button-Motiv ----------
+const COST={low:0.011, medium:0.042, high:0.167};   // ca. US-$ je Bild 1024×1024 (gpt-image-1)
+function updCost(){ const n=+v("gCount"), c=COST[v("gQuality")]*n; $("gCost").textContent=`Kosten ca. ${(c).toFixed(2).replace(".",",")} $ für ${n} Bild${n>1?"er":""} (laut OpenAI-Preisliste, Stand 2025).`; }
+["gCount","gQuality"].forEach(id=>$(id).addEventListener("change",updCost)); updCost();
+function colorHint(){ const c=v("gColors"); return c==="button" ? `colors that harmonize with a ${v("bgColor")} button background` : c; }
+function basePrompt(){
+  const parts=[`Motif for a small round pin-back button (25 mm): ${v("gTheme").trim()}.`, `Style: ${v("gStyle")}.`];
+  const col=colorHint(); if(col) parts.push(`Colors: ${col}.`);
+  if (v("gExtra").trim()) parts.push(v("gExtra").trim()+".");
+  parts.push("One clear subject, bold simple shapes, strong contrast, readable at small size. Centered, fits inside a circle with margin.");
+  if (on("gArcSpace")) parts.push("Keep the top and bottom edge areas calm and empty, leaving room for curved text.");
+  parts.push(on("gTransparent") ? "Isolated subject on a transparent background." : "Plain, simple background.");
+  parts.push("No text, no letters, no numbers, no watermark, no border, no circle frame.");
+  return parts.join(" ");
+}
+let promptEdited=false;
+$("gPrompt").addEventListener("input",()=>{ promptEdited = !!v("gPrompt").trim(); });
+["gTheme","gStyle","gColors","gArcSpace","gTransparent","gExtra"].forEach(id=>$(id).addEventListener("change",()=>{ if(!promptEdited) $("gPrompt").value=""; }));
+async function improvePrompt(key){
+  const d=await askAI(key,
+    "You are an art director writing prompts for the image model gpt-image-1. The images become motifs for small round pin-back buttons (25 mm visible diameter). "+
+    "The user describes the idea in German. Write ONE English prompt (60-110 words) that: names one clear, iconic subject; uses bold simple shapes, thick outlines and strong contrast so it reads at 25 mm; "+
+    "is centered and fits inside a circle with margin; follows the given style and colors exactly; forbids any text, letters, numbers, logos of real brands, watermarks, borders and circle frames. "+
+    "Activist and antifascist symbolism (flags, fists, flowers, doves) is fine; no real persons, no copyrighted characters. "+
+    "Return JSON {\"prompt\":\"...\"}.",
+    `Idee: ${v("gTheme").trim()}\nZusatz: ${v("gExtra").trim()||"-"}\nStil: ${v("gStyle")}\nFarben: ${colorHint()||"frei"}\n`+
+    `Platz für Bogentext oben/unten: ${on("gArcSpace")?"ja, obere und untere Randzone ruhig lassen":"nein"}\nHintergrund: ${on("gTransparent")?"transparent, freigestelltes Motiv":"schlicht, einfarbig"}`);
+  if (!d.prompt) throw new Error("Die KI hat keinen Prompt geliefert.");
+  return String(d.prompt).trim();
+}
+$("doPrompt").onclick=async()=>{
+  if (!v("gTheme").trim()){ $("genStatus").textContent="Beschreibe zuerst, was auf dem Button zu sehen sein soll."; return; }
   const key=apiKey($("genStatus")); if(!key) return;
-  const prompt=`Motif for a round pin-back button: ${v("gTheme")}. Style: ${v("gStyle")}. ${v("gExtra")} Centered composition that works inside a circle, subject fully visible with margin, no text, no letters, no border, square image.`;
-  $("doGen").disabled=true; $("genStatus").textContent="Bild wird erzeugt, das dauert meist 10 bis 40 Sekunden …";
+  $("doPrompt").disabled=true; $("genStatus").textContent="KI schreibt den Prompt …";
+  try{ $("gPrompt").value=await improvePrompt(key); promptEdited=true; $("genStatus").textContent="Prompt fertig – du kannst ihn noch ändern."; }
+  catch(e){ $("genStatus").textContent=netMsg(e); }
+  $("doPrompt").disabled=false;
+};
+// ---------- Verlauf erzeugter Bilder (IndexedDB, nur auf diesem Gerät) ----------
+const hist={ db:null,
+  open(){ return this.db ? Promise.resolve(this.db) : new Promise((ok,no)=>{ const r=indexedDB.open("bildstudio",1); r.onupgradeneeded=()=>r.result.createObjectStore("gen",{keyPath:"id",autoIncrement:true}); r.onsuccess=()=>ok(this.db=r.result); r.onerror=()=>no(r.error); }); },
+  async add(blob, theme, prompt){ try{ const db=await this.open(); await new Promise((ok,no)=>{ const tx=db.transaction("gen","readwrite"); tx.objectStore("gen").add({blob,theme,prompt,t:Date.now()}); tx.oncomplete=ok; tx.onerror=()=>no(tx.error); }); await this.trim(); }catch(e){} },
+  async all(){ try{ const db=await this.open(); return await new Promise((ok,no)=>{ const r=db.transaction("gen").objectStore("gen").getAll(); r.onsuccess=()=>ok(r.result.reverse()); r.onerror=()=>no(r.error); }); }catch(e){ return []; } },
+  async trim(){ const a=await this.all(); if(a.length<=16) return; const db=await this.open(); const tx=db.transaction("gen","readwrite"); a.slice(16).forEach(x=>tx.objectStore("gen").delete(x.id)); }
+};
+function genThumb(container, blob, theme, prepend){
+  const b=document.createElement("button"); b.title=theme||"";
+  const im=document.createElement("img"); im.src=URL.createObjectURL(blob); b.append(im);
+  b.onclick=()=>loadBlob(blob, "KI-generiert mit OpenAI gpt-image-1: „"+esc(theme||"")+"“");
+  prepend ? container.prepend(b) : container.append(b);
+}
+async function showHistory(){ const a=await hist.all(); $("genHistory").innerHTML=""; a.forEach(x=>genThumb($("genHistory"), x.blob, x.theme)); $("genHistBox").hidden=!a.length; }
+showHistory();
+const b64Blob = b64 => { const bin=atob(b64), arr=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i); return new Blob([arr],{type:"image/png"}); };
+$("doGen").onclick=async()=>{
+  if (!v("gTheme").trim() && !v("gPrompt").trim()){ $("genStatus").textContent="Beschreibe zuerst, was auf dem Button zu sehen sein soll."; return; }
+  const key=apiKey($("genStatus")); if(!key) return;
+  const n=+v("gCount");
+  $("doGen").disabled=true;
   try{
-    const r=await fetch("https://api.openai.com/v1/images/generations",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},body:JSON.stringify({model:"gpt-image-1",prompt,size:"1024x1024",n:1})});
+    let prompt=v("gPrompt").trim();
+    if (!prompt){ $("genStatus").textContent="KI schreibt den Prompt …"; try{ prompt=await improvePrompt(key); }catch(e){ prompt=basePrompt(); } $("gPrompt").value=prompt; }
+    $("genStatus").textContent=`${n} Bild${n>1?"er werden":" wird"} erzeugt, das dauert meist 20 bis 60 Sekunden …`;
+    const body={model:"gpt-image-1",prompt,size:"1024x1024",n,quality:v("gQuality")};
+    if (on("gTransparent")){ body.background="transparent"; body.output_format="png"; }
+    const r=await fetch("https://api.openai.com/v1/images/generations",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},body:JSON.stringify(body)});
     const d=await r.json(); if(!r.ok) throw new Error("OpenAI: "+(d.error?.message||r.status));
-    await loadImage("data:image/png;base64,"+d.data[0].b64_json, "KI-generiert mit OpenAI gpt-image-1: „"+esc(v("gTheme"))+"“");
-    $("genStatus").textContent="";
+    const theme=v("gTheme").trim()||prompt.slice(0,60);
+    $("genResults").innerHTML="";
+    const blobs=d.data.map(x=>b64Blob(x.b64_json));
+    blobs.forEach(bl=>{ genThumb($("genResults"), bl, theme); hist.add(bl, theme, prompt); });
+    await loadBlob(blobs[0], "KI-generiert mit OpenAI gpt-image-1: „"+esc(theme)+"“");
+    $("genStatus").textContent = blobs.length>1 ? "Fertig – tippe auf eine Variante, um sie zu verwenden." : "Fertig.";
+    setTimeout(showHistory, 500);
   }catch(e){ $("genStatus").textContent=netMsg(e); }
   $("doGen").disabled=false;
 };
